@@ -1193,7 +1193,27 @@ Type TTime
 	End Method
 
 	Public
-
+	
+	Rem
+	bbdoc: From delimited datetime string where with order year-month-day hour:minute:second.fractional eg: 2002-1-25 11:32:19.123
+	returns: A #TTime of the string entered, or Null if the date was invalid.
+	about:
+	<pre>
+	SuperStrict
+	
+	Framework Boost.DateTime
+	Import BRL.StandardIO
+	
+	Local t:TTime = TTime.fromString("2004-09-25 15:39:22.123")
+	
+	Print t.toString()
+	</pre>
+	<a href="../examples/tdate_fromString.bmx">Example source</a>
+	End Rem
+	Function FromString:TTime(datetime:String)
+		Return New TTime(bmx_ptime_fromstring(datetime))
+	End Function
+	
 	Rem
 	bbdoc: Get the local time, second level resolution, based on the time zone settings of the computer.
 	about:
