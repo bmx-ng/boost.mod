@@ -1196,7 +1196,7 @@ Type TTime
 	
 	Rem
 	bbdoc: From delimited datetime string where with order year-month-day hour:minute:second.fractional eg: 2002-1-25 11:32:19.123
-	returns: A #TTime of the string entered, or Null if the date was invalid.
+	returns: A #TTime of the string entered, or Null if the datetime was invalid.
 	about:
 	<pre>
 	SuperStrict
