@@ -152,6 +152,8 @@ Extern
 	Function bmx_time_ticks_per_second:Int()
 	Function bmx_time_num_fractional_digits:Int()
 	
+	Function bmx_ptime_fromstring:Byte Ptr(datetime:String)
+	
 	Function bmx_ptime_new:Byte Ptr(date:Byte Ptr, duration:Byte Ptr)
 	Function bmx_ptime_free(time:Byte Ptr)
 	Function bmx_ptime_local_new:Byte Ptr()

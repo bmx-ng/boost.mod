@@ -154,6 +154,8 @@ extern "C" {
 	int bmx_time_ticks_per_second();
 	int bmx_time_num_fractional_digits();
 	
+	ptime * bmx_ptime_fromstring(BBString * dt);
+	
 	ptime * bmx_ptime_new(date * d, time_duration * t);
 	void bmx_ptime_free(ptime * p);
 	ptime * bmx_ptime_local_new();
@@ -786,6 +788,18 @@ BBString * bmx_time_duration_asformat(time_duration * d, BBString * format, std:
 	BBString * ret = bmx_BBString_from_stream(outputStringStream);
 	bbMemFree(f);
 	return ret;
+}
+
+ptime * bmx_ptime_fromstring(BBString * dt) {
+	char * t = (char*)bbStringToUTF8String(dt);
+	try {
+		ptime * _time = new ptime(time_from_string(std::string(t)));
+		bbMemFree(t);
+		return _time;
+	} catch (...) {
+		bbMemFree(t);
+		return 0;
+	}
 }
 
 ptime * bmx_ptime_new(date * d, time_duration * t) {
