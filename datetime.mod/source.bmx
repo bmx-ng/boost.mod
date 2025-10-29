@@ -158,6 +158,7 @@ Extern
 	Function bmx_ptime_universal_new:Byte Ptr()
 	Function bmx_ptime_local_microsecond_new:Byte Ptr()
 	Function bmx_ptime_universal_microsecond_new:Byte Ptr()
+	Function bmx_ptime_fromstring:Byte Ptr(datetime:String)
 	Function bmx_ptime_date:Byte Ptr(time:Byte Ptr)
 	Function bmx_ptime_time_of_day:Byte Ptr(time:Byte Ptr)
 	Function bmx_ptime_to_string:String(time:Byte Ptr, locale:Byte Ptr, facet:Byte Ptr)

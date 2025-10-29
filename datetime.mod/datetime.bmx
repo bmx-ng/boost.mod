@@ -1294,6 +1294,23 @@ Type TTime
 	End Function
 	
 	Rem
+	bbdoc: Constructs a new #TTime from a datetime string (YYYY-MM-DD HH:MM:SS.FFF)
+	about:
+	<pre>
+	Framework Boost.DateTime
+	Import BRL.StandardIO
+	
+	local t:TTime = TTime.FromString("2002-01-20 23:59:59.000")
+	
+	print t.ToString()
+	</pre>
+	<a href="../examples/ttime_fromString.bmx">Example source</a>
+	EndRem
+	Function FromString:TTime(datetime:String)
+		Return New TTime(bmx_ptime_fromstring(datetime))
+	EndFunction
+	
+	Rem
 	bbdoc: Get the date part of a time.
 	about:
 	<pre>

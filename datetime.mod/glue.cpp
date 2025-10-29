@@ -160,6 +160,7 @@ extern "C" {
 	ptime * bmx_ptime_universal_new();
 	ptime * bmx_ptime_local_microsecond_new();
 	ptime * bmx_ptime_universal_microsecond_new();
+	ptime * bmx_ptime_fromstring(BBString * dt);
 	date * bmx_ptime_date(ptime * p);
 	time_duration * bmx_ptime_time_of_day(ptime * p);
 	BBString * bmx_ptime_to_simple_string(ptime * p);
@@ -810,6 +811,18 @@ ptime * bmx_ptime_local_microsecond_new() {
 
 ptime * bmx_ptime_universal_microsecond_new() {
 	return new ptime(microsec_clock::universal_time());
+}
+
+ptime * bmx_ptime_fromstring(BBString * dt){
+	char * d = (char*)bbStringToUTF8String(dt);
+	try {
+		ptime * t = new ptime(time_from_string(std::string(d)));
+		bbMemFree(d);
+		return t;
+	} catch (...) {
+		bbMemFree(d);
+		return 0;
+	}
 }
 
 date * bmx_ptime_date(ptime * p) {
