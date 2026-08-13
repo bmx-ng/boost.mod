@@ -4,7 +4,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(FUSION_SEQUENCE_FILTER_VIEW_HPP)
+#ifndef FUSION_SEQUENCE_FILTER_VIEW_HPP
 #define FUSION_SEQUENCE_FILTER_VIEW_HPP
 
 #include <boost/fusion/support/config.hpp>
@@ -21,6 +21,11 @@
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/inherit.hpp>
 #include <boost/mpl/identity.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -52,20 +57,16 @@ namespace boost { namespace fusion
         {}
 
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        filter_view(filter_view const& rhs)
-            : seq(rhs.seq)
-        {}
-
-        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         first_type first() const { return fusion::begin(seq); }
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         last_type last() const { return fusion::end(seq); }
         typename mpl::if_<traits::is_view<Sequence>, Sequence, Sequence&>::type seq;
-
-        // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(filter_view& operator= (filter_view const&))
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #endif
 

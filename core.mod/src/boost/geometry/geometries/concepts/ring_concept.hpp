@@ -34,27 +34,11 @@
 namespace boost { namespace geometry { namespace concepts
 {
 
-
-/*!
-\brief ring concept
-\ingroup concepts
-\par Formal definition:
-The ring concept is defined as following:
-- there must be a specialization of traits::tag defining ring_tag as type
-- it must behave like a Boost.Range
-- there can optionally be a specialization of traits::point_order defining the
-  order or orientation of its points, clockwise or counterclockwise.
-- it must implement a std::back_insert_iterator
-  (This is the same as the for the concept Linestring, and described there)
-
-\note to fulfill the concepts, no traits class has to be specialized to
-define the point type.
-*/
 template <typename Geometry>
 class Ring
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
-    typedef typename point_type<Geometry>::type point_type;
+    using point_type = point_type_t<Geometry>;
 
     BOOST_CONCEPT_ASSERT( (concepts::Point<point_type>) );
     BOOST_CONCEPT_ASSERT( (boost::RandomAccessRangeConcept<Geometry>) );
@@ -83,7 +67,7 @@ template <typename Geometry>
 class ConstRing
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
-    typedef typename point_type<Geometry>::type point_type;
+    using point_type = point_type_t<Geometry>;
 
     BOOST_CONCEPT_ASSERT( (concepts::ConstPoint<point_type>) );
     BOOST_CONCEPT_ASSERT( (boost::RandomAccessRangeConcept<Geometry>) );

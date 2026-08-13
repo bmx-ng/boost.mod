@@ -22,6 +22,7 @@
 #include <boost/container/new_allocator.hpp>
 #include <boost/container/pmr/memory_resource.hpp>
 #include <boost/container/pmr/global_resource.hpp>
+#include <boost/assert.hpp>
 
 #include <cstddef>
 
@@ -77,7 +78,7 @@ class polymorphic_allocator
 
    //! <b>Returns</b>: Equivalent to
    //!   `static_cast<T*>(m_resource->allocate(n * sizeof(T), alignof(T)))`.
-   T* allocate(size_t n)
+   BOOST_CONTAINER_NODISCARD T* allocate(size_t n)
    {  return static_cast<T*>(m_resource->allocate(n*sizeof(T), ::boost::move_detail::alignment_of<T>::value));  }
 
    //! <b>Requires</b>: p was allocated from a memory resource, x, equal to *m_resource,

@@ -1,6 +1,7 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
 // Copyright (c) 2009-2015 Barend Gehrels, Amsterdam, the Netherlands.
+// Copyright (c) 2023 Adam Wulkiewicz, Lodz, Poland.
 
 // This file was modified by Oracle on 2015-2021.
 // Modifications copyright (c) 2015-2020, Oracle and/or its affiliates.
@@ -18,14 +19,13 @@
 #define BOOST_GEOMETRY_IO_SVG_MAPPER_HPP
 
 #include <cstdio>
+#include <memory>
 #include <type_traits>
 #include <vector>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/config.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include <boost/geometry/core/static_assert.hpp>
 #include <boost/geometry/core/tags.hpp>
@@ -152,7 +152,7 @@ struct svg_map<multi_tag, Multi, SvgPoint>
 {
     typedef typename single_tag_of
       <
-          typename geometry::tag<Multi>::type
+          geometry::tag_t<Multi>
       >::type stag;
 
     template <typename TransformStrategy>
@@ -160,10 +160,7 @@ struct svg_map<multi_tag, Multi, SvgPoint>
                     std::string const& style, double size,
                     Multi const& multi, TransformStrategy const& strategy)
     {
-        for (typename boost::range_iterator<Multi const>::type it
-            = boost::begin(multi);
-            it != boost::end(multi);
-            ++it)
+        for (auto it = boost::begin(multi); it != boost::end(multi); ++it)
         {
             svg_map
                 <
@@ -188,11 +185,7 @@ struct devarianted_svg_map
     {
         svg_map
             <
-                typename tag_cast
-                    <
-                        typename tag<Geometry>::type,
-                        multi_tag
-                    >::type,
+                tag_cast_t<tag_t<Geometry>, multi_tag>,
                 typename std::remove_const<Geometry>::type,
                 SvgPoint
             >::apply(stream, style, size, geometry, strategy);
@@ -270,13 +263,13 @@ template
     bool SameScale = true,
     typename SvgCoordinateType = double
 >
-class svg_mapper : boost::noncopyable
+class svg_mapper
 {
     typedef model::point<SvgCoordinateType, 2, cs::cartesian> svg_point_type;
 
     typedef typename geometry::select_most_precise
         <
-            typename coordinate_type<Point>::type,
+            coordinate_type_t<Point>,
             double
         >::type calculation_type;
 
@@ -290,7 +283,7 @@ class svg_mapper : boost::noncopyable
         > transformer_type;
 
     model::box<Point> m_bounding_box;
-    boost::scoped_ptr<transformer_type> m_matrix;
+    std::unique_ptr<transformer_type> m_matrix;
     std::ostream& m_stream;
 
     SvgCoordinateType const m_width;
@@ -343,7 +336,7 @@ class svg_mapper : boost::noncopyable
     }
 
 public :
-    
+
     /*!
     \brief Constructor, initializing the SVG map. Opens and initializes the SVG.
          Should be called explicitly.
@@ -390,6 +383,8 @@ public :
         assign_inverse(m_bounding_box);
         write_header(width_height);
     }
+
+    svg_mapper(svg_mapper const&) = delete;  // Not copyable.
 
     /*!
     \brief Destructor, called automatically. Closes the SVG by streaming <\/svg>
@@ -458,7 +453,7 @@ public :
             << " x=\"" << get<0>(map_point) + offset_x << "\""
             << " y=\"" << get<1>(map_point) + offset_y << "\""
             << ">";
-        if (s.find("\n") == std::string::npos)
+        if (s.find('\n') == std::string::npos)
         {
              m_stream  << s;
         }
@@ -466,19 +461,17 @@ public :
         {
             // Multi-line modus
 
-            std::vector<std::string> splitted;
-            boost::split(splitted, s, boost::is_any_of("\n"));
-            for (std::vector<std::string>::const_iterator it
-                = splitted.begin();
-                it != splitted.end();
-                ++it, offset_y += lineheight)
+            std::vector<std::string> split;
+            boost::split(split, s, boost::is_any_of("\n"));
+            for (auto const& item : split)
             {
                  m_stream
                     << "<tspan x=\"" << get<0>(map_point) + offset_x
                     << "\""
                     << " y=\"" << get<1>(map_point) + offset_y
                     << "\""
-                    << ">" << *it << "</tspan>";
+                    << ">" << item << "</tspan>";
+                offset_y += lineheight;
             }
         }
         m_stream << "</text>" << std::endl;

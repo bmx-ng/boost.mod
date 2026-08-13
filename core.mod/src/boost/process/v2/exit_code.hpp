@@ -12,6 +12,15 @@
 #define BOOST_PROCESS_V2_EXIT_CODE_HPP
 
 #include <boost/process/v2/detail/config.hpp>
+#include <boost/process/v2/error.hpp>
+
+#if defined(BOOST_PROCESS_V2_STANDALONE)
+#include <asio/associator.hpp>
+#include <asio/async_result.hpp>
+#else
+#include <boost/asio/associator.hpp>
+#include <boost/asio/async_result.hpp>
+#endif 
 
 #if defined(BOOST_PROCESS_V2_POSIX)
 #include <sys/wait.h>
@@ -63,7 +72,11 @@ typedef int native_exit_code_type;
 
 namespace detail
 {
-constexpr native_exit_code_type still_active = 0x7f;
+constexpr native_exit_code_type still_active = 0x17f;
+static_assert(WIFSTOPPED(still_active), "Expected still_active to indicate WIFSTOPPED");
+static_assert(!WIFEXITED(still_active), "Expected still_active to not indicate WIFEXITED");
+static_assert(!WIFSIGNALED(still_active), "Expected still_active to not indicate WIFSIGNALED");
+static_assert(!WIFCONTINUED(still_active), "Expected still_active to not indicate WIFCONTINUED");
 }
 
 inline bool process_is_running(int code)
@@ -84,6 +97,38 @@ inline int evaluate_exit_code(int code)
 #endif
 
 #endif
+
+/// @{
+/** Helper to subsume an exit-code into an error_code if there's no actual error isn't set.
+ * @code {.cpp}
+ * process proc{ctx, "exit", {"1"}};
+ * 
+ * proc.async_wait(
+ *     asio::deferred(
+ *      [&proc](error_code ec, int)
+ *      {
+ *        return asio::deferred.values(
+ *                  check_exit_code(ec, proc.native_exit_code())
+ *              ))
+ *      [](error_code ec)
+ *      {
+ *        assert(ec.value() == 10);
+ *        assert(ec.category() == error::get_exit_code_category());
+ *      }));
+ * 
+ * @endcode
+ */
+
+inline error_code check_exit_code(
+    error_code &ec, native_exit_code_type native_code,
+    const error_category & category = error::get_exit_code_category())
+{
+  if (!ec)
+    BOOST_PROCESS_V2_ASSIGN_EC(ec, native_code, category);
+  return ec;
+}
+
+/// @}
 
 BOOST_PROCESS_V2_END_NAMESPACE
 

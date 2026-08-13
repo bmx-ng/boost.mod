@@ -10,13 +10,15 @@
 #ifndef BOOST_JSON_IMPL_ARRAY_HPP
 #define BOOST_JSON_IMPL_ARRAY_HPP
 
+#include <boost/core/detail/static_assert.hpp>
 #include <boost/json/value.hpp>
 #include <boost/json/detail/except.hpp>
 #include <algorithm>
 #include <stdexcept>
 #include <type_traits>
 
-BOOST_JSON_NS_BEGIN
+namespace boost {
+namespace json {
 
 //----------------------------------------------------------
 
@@ -141,9 +143,8 @@ array(
         std::move(sp),
         iter_cat<InputIt>{})
 {
-    BOOST_STATIC_ASSERT(
-        std::is_constructible<value,
-            decltype(*first)>::value);
+    BOOST_CORE_STATIC_ASSERT((
+        std::is_constructible<value, decltype(*first)>::value));
 }
 
 //----------------------------------------------------------
@@ -160,9 +161,8 @@ insert(
     InputIt first, InputIt last) ->
         iterator
 {
-    BOOST_STATIC_ASSERT(
-        std::is_constructible<value,
-            decltype(*first)>::value);
+    BOOST_CORE_STATIC_ASSERT((
+        std::is_constructible<value, decltype(*first)>::value));
     return insert(pos, first, last,
         iter_cat<InputIt>{});
 }
@@ -203,35 +203,37 @@ emplace_back(Arg&& arg)
 
 value&
 array::
-at(std::size_t pos)
+at(std::size_t pos, source_location const& loc) &
 {
-    if(pos >= t_->size)
-        detail::throw_out_of_range(
-            BOOST_JSON_SOURCE_POS);
-    return (*t_)[pos];
+    auto const& self = *this;
+    return const_cast< value& >( self.at(pos, loc) );
 }
 
-value const&
+value&&
 array::
-at(std::size_t pos) const
+at(std::size_t pos, source_location const& loc) &&
 {
-    if(pos >= t_->size)
-        detail::throw_out_of_range(
-            BOOST_JSON_SOURCE_POS);
-    return (*t_)[pos];
+    return std::move( at(pos, loc) );
 }
 
 value&
 array::
-operator[](std::size_t pos) noexcept
+operator[](std::size_t pos) & noexcept
 {
     BOOST_ASSERT(pos < t_->size);
     return (*t_)[pos];
 }
 
+value&&
+array::
+operator[](std::size_t pos) && noexcept
+{
+    return std::move( (*this)[pos] );
+}
+
 value const&
 array::
-operator[](std::size_t pos) const noexcept
+operator[](std::size_t pos) const& noexcept
 {
     BOOST_ASSERT(pos < t_->size);
     return (*t_)[pos];
@@ -239,15 +241,22 @@ operator[](std::size_t pos) const noexcept
 
 value&
 array::
-front() noexcept
+front() & noexcept
 {
     BOOST_ASSERT(t_->size > 0);
     return (*t_)[0];
 }
 
+value&&
+array::
+front() && noexcept
+{
+    return std::move( front() );
+}
+
 value const&
 array::
-front() const noexcept
+front() const& noexcept
 {
     BOOST_ASSERT(t_->size > 0);
     return (*t_)[0];
@@ -255,16 +264,23 @@ front() const noexcept
 
 value&
 array::
-back() noexcept
+back() & noexcept
 {
     BOOST_ASSERT(
         t_->size > 0);
     return (*t_)[t_->size - 1];
 }
 
+value&&
+array::
+back() && noexcept
+{
+    return std::move( back() );
+}
+
 value const&
 array::
-back() const noexcept
+back() const& noexcept
 {
     BOOST_ASSERT(
         t_->size > 0);
@@ -555,6 +571,7 @@ insert(
     return r.commit();
 }
 
-BOOST_JSON_NS_END
+} // namespace json
+} // namespace boost
 
 #endif

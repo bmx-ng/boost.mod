@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2022 Bruce A Henderson
+' Copyright (c) 2007-2026 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,13 @@ bbdoc: Date Time
 End Rem
 Module Boost.DateTime
 
-ModuleInfo "Version: 1.08"
+ModuleInfo "Version: 1.09"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2022 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2026 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.09"
+ModuleInfo "History: Updated to Boost 1.92"
 ModuleInfo "History: 1.08"
 ModuleInfo "History: Refactored"
 ModuleInfo "History: 1.07"
@@ -84,7 +86,7 @@ Type TDate
 	Field datePtr:Byte Ptr
 
 	Private
-	Method New(datePtr:Byte Ptr)
+	Internal Method New(datePtr:Byte Ptr)
 		Self.datePtr = datePtr
 	End Method
 
@@ -585,7 +587,7 @@ Type TDatePeriod
 	Method New()
 	End Method
 
-	Method New(datePeriodPtr:Byte Ptr)
+	Internal Method New(datePeriodPtr:Byte Ptr)
 		Self.datePeriodPtr = datePeriodPtr
 	End Method
 
@@ -1188,7 +1190,7 @@ Type TTime
 	Field ptimePtr:Byte Ptr
 
 	Private
-	Method New(ptimePtr:Byte Ptr)
+	Internal Method New(ptimePtr:Byte Ptr)
 		Self.ptimePtr = ptimePtr
 	End Method
 
@@ -1547,7 +1549,7 @@ Type TTimeDuration
 	Method New()
 	End Method
 
-	Method New(durationPtr:Byte Ptr)
+	Internal Method New(durationPtr:Byte Ptr)
 		Self.durationPtr = durationPtr
 	End Method
 	Public
@@ -1877,7 +1879,7 @@ Type TTimePeriod
 	Method New()
 	End Method
 
-	Method New(timePeriodPtr:Byte Ptr)
+	Internal Method New(timePeriodPtr:Byte Ptr)
 		Self.timePeriodPtr = timePeriodPtr
 	End Method
 
@@ -2048,7 +2050,7 @@ Type TTZDatabase
 	Field tzDatabasePtr:Byte Ptr
 	
 	Private
-	Method New(tzDatabasePtr:Byte Ptr)
+	Internal Method New(tzDatabasePtr:Byte Ptr)
 		Self.tzDatabasePtr = tzDatabasePtr
 	End Method
 
@@ -2112,7 +2114,7 @@ Type TLocalDateTime
 	Method New()
 	End Method
 
-	Method New(localDateTimePtr:Byte Ptr)
+	Internal Method New(localDateTimePtr:Byte Ptr)
 		Self.localDateTimePtr = localDateTimePtr
 	End Method
 
@@ -2307,7 +2309,7 @@ Type TLocalTimePeriod
 	Method New()
 	End Method
 
-	Method New(localTimePeriodPtr:Byte Ptr)
+	Internal Method New(localTimePeriodPtr:Byte Ptr)
 		Self.localTimePeriodPtr = localTimePeriodPtr
 	End Method
 
@@ -2538,7 +2540,7 @@ Type TTimeZone
 	Method New()
 	End Method
 
-	Method New(timeZonePtr:Byte Ptr)
+	Internal Method New(timeZonePtr:Byte Ptr)
 		Self.timeZonePtr = timeZonePtr
 	End Method
 

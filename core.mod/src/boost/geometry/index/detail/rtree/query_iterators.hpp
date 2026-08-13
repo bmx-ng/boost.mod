@@ -2,7 +2,7 @@
 //
 // R-tree query iterators
 //
-// Copyright (c) 2011-2015 Adam Wulkiewicz, Lodz, Poland.
+// Copyright (c) 2011-2023 Adam Wulkiewicz, Lodz, Poland.
 //
 // This file was modified by Oracle on 2019-2021.
 // Modifications copyright (c) 2019-2021 Oracle and/or its affiliates.
@@ -15,7 +15,7 @@
 #ifndef BOOST_GEOMETRY_INDEX_DETAIL_RTREE_QUERY_ITERATORS_HPP
 #define BOOST_GEOMETRY_INDEX_DETAIL_RTREE_QUERY_ITERATORS_HPP
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 #include <boost/geometry/index/detail/rtree/node/node_elements.hpp>
 #include <boost/geometry/index/detail/rtree/visitors/distance_query.hpp>
@@ -34,14 +34,14 @@ struct end_query_iterator
 
     reference operator*() const
     {
-        BOOST_GEOMETRY_INDEX_ASSERT(false, "iterator not dereferencable");
+        BOOST_GEOMETRY_INDEX_ASSERT(false, "iterator not dereferenceable");
         pointer p(0);
         return *p;
     }
 
     const value_type * operator->() const
     {
-        BOOST_GEOMETRY_INDEX_ASSERT(false, "iterator not dereferencable");
+        BOOST_GEOMETRY_INDEX_ASSERT(false, "iterator not dereferenceable");
         const value_type * p = 0;
         return p;
     }
@@ -95,7 +95,7 @@ public:
 
     const value_type * operator->() const
     {
-        return boost::addressof(m_impl.dereference());
+        return std::addressof(m_impl.dereference());
     }
 
     spatial_query_iterator & operator++()
@@ -125,7 +125,7 @@ public:
     {
         return r.m_impl.is_end();
     }
-    
+
 private:
     visitors::spatial_query_incremental<MembersHolder, Predicates> m_impl;
 };
@@ -161,7 +161,7 @@ public:
 
     const value_type * operator->() const
     {
-        return boost::addressof(m_impl.dereference());
+        return std::addressof(m_impl.dereference());
     }
 
     distance_query_iterator & operator++()
@@ -217,7 +217,7 @@ public:
     virtual ~query_iterator_base() {}
 
     virtual query_iterator_base * clone() const = 0;
-    
+
     virtual bool is_end() const = 0;
     virtual reference dereference() const = 0;
     virtual void increment() = 0;
@@ -247,7 +247,7 @@ public:
     virtual void increment() { ++m_iterator; }
     virtual bool equals(base_t const& r) const
     {
-        const query_iterator_wrapper * p = dynamic_cast<const query_iterator_wrapper *>(boost::addressof(r));
+        const query_iterator_wrapper * p = dynamic_cast<const query_iterator_wrapper *>(std::addressof(r));
         BOOST_GEOMETRY_INDEX_ASSERT(p, "iterators can't be compared");
         return m_iterator == p->m_iterator;
     }
@@ -261,7 +261,7 @@ template <typename Value, typename Allocators>
 class query_iterator
 {
     typedef query_iterator_base<Value, Allocators> iterator_base;
-    typedef boost::scoped_ptr<iterator_base> iterator_ptr;
+    typedef std::unique_ptr<iterator_base> iterator_ptr;
 
 public:
     typedef std::forward_iterator_tag iterator_category;
@@ -285,30 +285,18 @@ public:
         : m_ptr(o.m_ptr.get() ? o.m_ptr->clone() : 0)
     {}
 
+    query_iterator(query_iterator&&) = default;
+
     query_iterator & operator=(query_iterator const& o)
     {
-        if ( this != boost::addressof(o) )
+        if ( this != std::addressof(o) )
         {
             m_ptr.reset(o.m_ptr.get() ? o.m_ptr->clone() : 0);
         }
         return *this;
     }
 
-    query_iterator(query_iterator && o)
-        : m_ptr(0)
-    {
-        m_ptr.swap(o.m_ptr);
-    }
-
-    query_iterator & operator=(query_iterator && o)
-    {
-        if ( this != boost::addressof(o) )
-        {
-            m_ptr.swap(o.m_ptr);
-            o.m_ptr.reset();
-        }
-        return *this;
-    }
+    query_iterator& operator=(query_iterator &&) = default;
 
     reference operator*() const
     {
@@ -317,7 +305,7 @@ public:
 
     const value_type * operator->() const
     {
-        return boost::addressof(m_ptr->dereference());
+        return std::addressof(m_ptr->dereference());
     }
 
     query_iterator & operator++()

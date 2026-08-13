@@ -4,7 +4,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(FUSION_REVERSE_VIEW_ITERATOR_07202005_0835)
+#ifndef FUSION_REVERSE_VIEW_ITERATOR_07202005_0835
 #define FUSION_REVERSE_VIEW_ITERATOR_07202005_0835
 
 #include <boost/fusion/support/config.hpp>
@@ -23,6 +23,11 @@
 #include <boost/fusion/view/reverse_view/detail/key_of_impl.hpp>
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/static_assert.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -47,11 +52,12 @@ namespace boost { namespace fusion
             : first(converter::call(in_first)) {}
 
         first_type first;
-
-        // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(reverse_view_iterator& operator= (reverse_view_iterator const&))
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
 namespace std

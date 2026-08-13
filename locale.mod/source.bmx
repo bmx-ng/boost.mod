@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2022 Bruce A Henderson
+' Copyright (c) 2013-2026 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ Import "../core.mod/src/libs/locale/src/boost/locale/shared/date_time.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/shared/format.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/shared/formatting.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/shared/generator.cpp"
+Import "../core.mod/src/libs/locale/src/boost/locale/shared/iconv_codecvt.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/shared/ids.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/shared/localization_backend.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/shared/message.cpp"
@@ -44,6 +45,7 @@ Import "../core.mod/src/libs/locale/src/boost/locale/shared/mo_lambda.cpp"
 
 Import "../core.mod/src/libs/locale/src/boost/locale/util/codecvt_converter.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/util/default_locale.cpp"
+Import "../core.mod/src/libs/locale/src/boost/locale/util/encoding.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/util/gregorian.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/util/info.cpp"
 Import "../core.mod/src/libs/locale/src/boost/locale/util/locale_data.cpp"

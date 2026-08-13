@@ -4,7 +4,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(FUSION_BOOST_TUPLE_ITERATOR_09262006_1851)
+#ifndef FUSION_BOOST_TUPLE_ITERATOR_09262006_1851
 #define FUSION_BOOST_TUPLE_ITERATOR_09262006_1851
 
 #include <boost/fusion/support/config.hpp>
@@ -45,6 +45,10 @@ namespace boost { namespace fusion
     template <typename Cons>
     struct boost_tuple_iterator_identity;
 
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
     template <typename Cons = tuples::null_type>
     struct boost_tuple_iterator
         : iterator_facade<boost_tuple_iterator<Cons>, forward_traversal_tag>
@@ -143,10 +147,10 @@ namespace boost { namespace fusion
         struct equal_to
             : is_same<typename I1::identity, typename I2::identity>
         {};
-
-        // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(boost_tuple_iterator& operator= (boost_tuple_iterator const&))
     };
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
     template <typename Null>
     struct boost_tuple_null_iterator

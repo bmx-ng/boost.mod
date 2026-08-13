@@ -4,7 +4,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(FUSION_SEQUENCE_VIEW_10022005_0620)
+#ifndef FUSION_SEQUENCE_VIEW_10022005_0620
 #define FUSION_SEQUENCE_VIEW_10022005_0620
 
 #include <boost/fusion/support/config.hpp>
@@ -17,5 +17,6 @@
 #include <boost/fusion/view/transform_view.hpp>
 #include <boost/fusion/view/zip_view.hpp>
 #include <boost/fusion/view/flatten_view.hpp>
+#include <boost/fusion/view/identity_view.hpp>
 
 #endif

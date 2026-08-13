@@ -4,7 +4,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(FUSION_STD_TUPLE_ITERATOR_09112011_1905)
+#ifndef FUSION_STD_TUPLE_ITERATOR_09112011_1905
 #define FUSION_STD_TUPLE_ITERATOR_09112011_1905
 
 #include <boost/fusion/support/config.hpp>
@@ -16,6 +16,11 @@
 #include <boost/mpl/if.hpp>
 #include <tuple>
 #include <utility>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -106,6 +111,10 @@ namespace boost { namespace fusion
         };
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
 namespace std

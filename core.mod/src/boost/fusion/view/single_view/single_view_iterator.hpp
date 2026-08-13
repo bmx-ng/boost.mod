@@ -5,7 +5,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(BOOST_FUSION_SINGLE_VIEW_ITERATOR_05052005_0340)
+#ifndef BOOST_FUSION_SINGLE_VIEW_ITERATOR_05052005_0340
 #define BOOST_FUSION_SINGLE_VIEW_ITERATOR_05052005_0340
 
 #include <boost/fusion/support/config.hpp>
@@ -19,6 +19,11 @@
 #include <boost/fusion/view/single_view/detail/equal_to_impl.hpp>
 #include <boost/fusion/view/single_view/detail/value_of_impl.hpp>
 #include <boost/config.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -40,10 +45,12 @@ namespace boost { namespace fusion
             : view(in_view) {}
 
         SingleView& view;
-
-        BOOST_DELETED_FUNCTION(single_view_iterator& operator=(single_view_iterator const&))
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
 namespace std

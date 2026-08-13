@@ -45,6 +45,7 @@ in a translation unit of the program.
 #include <boost/json/impl/value.ipp>
 #include <boost/json/impl/value_stack.ipp>
 #include <boost/json/impl/value_ref.ipp>
+#include <boost/json/impl/visit.ipp>
 
 #include <boost/json/detail/impl/shared_resource.ipp>
 #include <boost/json/detail/impl/default_resource.ipp>
@@ -55,5 +56,6 @@ in a translation unit of the program.
 #include <boost/json/detail/impl/string_impl.ipp>
 
 #include <boost/json/detail/ryu/impl/d2s.ipp>
+#include <boost/json/detail/charconv/impl/from_chars.ipp>
 
 #endif

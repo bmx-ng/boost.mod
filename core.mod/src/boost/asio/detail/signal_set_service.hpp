@@ -2,7 +2,7 @@
 // detail/signal_set_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2022 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -23,6 +23,7 @@
 #include <boost/asio/cancellation_type.hpp>
 #include <boost/asio/error.hpp>
 #include <boost/asio/execution_context.hpp>
+#include <boost/asio/signal_set_base.hpp>
 #include <boost/asio/detail/handler_alloc_helpers.hpp>
 #include <boost/asio/detail/memory.hpp>
 #include <boost/asio/detail/op_queue.hpp>
@@ -36,18 +37,21 @@
 # include <boost/asio/detail/scheduler.hpp>
 #endif // defined(BOOST_ASIO_HAS_IOCP)
 
-#if !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#if !defined(BOOST_ASIO_WINDOWS) \
+  && !defined(BOOST_ASIO_CYGWIN_W32_SOCKETS)
 # if defined(BOOST_ASIO_HAS_IO_URING_AS_DEFAULT)
 #  include <boost/asio/detail/io_uring_service.hpp>
 # else // defined(BOOST_ASIO_HAS_IO_URING_AS_DEFAULT)
 #  include <boost/asio/detail/reactor.hpp>
 # endif // defined(BOOST_ASIO_HAS_IO_URING_AS_DEFAULT)
-#endif // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#endif // !defined(BOOST_ASIO_WINDOWS)
+       //   && !defined(BOOST_ASIO_CYGWIN_W32_SOCKETS)
 
 #include <boost/asio/detail/push_options.hpp>
 
 namespace boost {
 namespace asio {
+BOOST_ASIO_INLINE_NAMESPACE_BEGIN
 namespace detail {
 
 #if defined(NSIG) && (NSIG > 0)
@@ -58,7 +62,8 @@ enum { max_signal_number = 128 };
 
 extern BOOST_ASIO_DECL struct signal_state* get_signal_state();
 
-extern "C" BOOST_ASIO_DECL void boost_asio_signal_handler(int signal_number);
+extern "C" BOOST_ASIO_DECL void BOOST_ASIO_VERSIONED_NAME(signal_handler)(
+    int signal_number);
 
 class signal_set_service :
   public execution_context_service_base<signal_set_service>
@@ -141,8 +146,16 @@ public:
   BOOST_ASIO_DECL void destroy(implementation_type& impl);
 
   // Add a signal to a signal_set.
+  boost::system::error_code add(implementation_type& impl,
+      int signal_number, boost::system::error_code& ec)
+  {
+    return add(impl, signal_number, signal_set_base::flags::dont_care, ec);
+  }
+
+  // Add a signal to a signal_set with the specified flags.
   BOOST_ASIO_DECL boost::system::error_code add(implementation_type& impl,
-      int signal_number, boost::system::error_code& ec);
+      int signal_number, signal_set_base::flags_t f,
+      boost::system::error_code& ec);
 
   // Remove a signal to a signal_set.
   BOOST_ASIO_DECL boost::system::error_code remove(implementation_type& impl,
@@ -165,7 +178,7 @@ public:
   void async_wait(implementation_type& impl,
       Handler& handler, const IoExecutor& io_ex)
   {
-    typename associated_cancellation_slot<Handler>::type slot
+    associated_cancellation_slot_t<Handler> slot
       = boost::asio::get_associated_cancellation_slot(handler);
 
     // Allocate and construct an operation to wrap the handler.
@@ -243,7 +256,7 @@ private:
 
 #if !defined(BOOST_ASIO_WINDOWS) \
   && !defined(BOOST_ASIO_WINDOWS_RUNTIME) \
-  && !defined(__CYGWIN__)
+  && !defined(BOOST_ASIO_CYGWIN_W32_SOCKETS)
   // The type used for processing pipe readiness notifications.
   class pipe_read_op;
 
@@ -262,7 +275,7 @@ private:
 # endif // defined(BOOST_ASIO_HAS_IO_URING_AS_DEFAULT)
 #endif // !defined(BOOST_ASIO_WINDOWS)
        //   && !defined(BOOST_ASIO_WINDOWS_RUNTIME)
-       //   && !defined(__CYGWIN__)
+       //   && !defined(BOOST_ASIO_CYGWIN_W32_SOCKETS)
 
   // A mapping from signal number to the registered signal sets.
   registration* registrations_[max_signal_number];
@@ -273,6 +286,7 @@ private:
 };
 
 } // namespace detail
+BOOST_ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 } // namespace boost
 

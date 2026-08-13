@@ -11,16 +11,16 @@
 #include <boost/config.hpp>
 #include <boost/config/workaround.hpp>
 
-// BOOST_SYSTEM_HAS_SYSTEM_ERROR
-
-#if !defined(BOOST_NO_CXX11_HDR_SYSTEM_ERROR) && !defined(BOOST_NO_CXX11_HDR_ATOMIC) && !defined(BOOST_NO_CXX11_HDR_MUTEX)
-# define BOOST_SYSTEM_HAS_SYSTEM_ERROR
-#endif
+// The macro BOOST_SYSTEM_DISABLE_THREADS can be defined on configurations
+// that provide <system_error> and <atomic>, but not <mutex>, such as the
+// single-threaded libstdc++.
+//
+// https://github.com/boostorg/system/issues/92
 
 // BOOST_SYSTEM_NOEXCEPT
 // Retained for backward compatibility
 
-#define BOOST_SYSTEM_NOEXCEPT BOOST_NOEXCEPT
+#define BOOST_SYSTEM_NOEXCEPT noexcept
 
 // BOOST_SYSTEM_HAS_CONSTEXPR
 
@@ -36,6 +36,22 @@
 # define BOOST_SYSTEM_CONSTEXPR constexpr
 #else
 # define BOOST_SYSTEM_CONSTEXPR
+#endif
+
+// BOOST_SYSTEM_HAS_CXX20_CONSTEXPR
+
+#if defined(__cpp_constexpr) && __cpp_constexpr >= 201907L
+# define BOOST_SYSTEM_HAS_CXX20_CONSTEXPR
+#endif
+
+#if BOOST_WORKAROUND(BOOST_CLANG_VERSION, < 110000)
+# undef BOOST_SYSTEM_HAS_CXX20_CONSTEXPR
+#endif
+
+#if defined(BOOST_SYSTEM_HAS_CXX20_CONSTEXPR)
+# define BOOST_SYSTEM_CXX20_CONSTEXPR constexpr
+#else
+# define BOOST_SYSTEM_CXX20_CONSTEXPR
 #endif
 
 // BOOST_SYSTEM_DEPRECATED
@@ -58,7 +74,9 @@
 
 // BOOST_SYSTEM_CLANG_6
 
-#if defined(__clang__) && (__clang_major__ < 7 || (defined(__APPLE__) && __clang_major__ < 11))
+// Android NDK r18b has Clang 7.0.2 that still needs the workaround
+// https://github.com/boostorg/system/issues/100
+#if defined(__clang__) && (__clang_major__ < 7 || (defined(__APPLE__) && __clang_major__ < 11) || (defined(__ANDROID__) && __clang_major__ == 7))
 # define BOOST_SYSTEM_CLANG_6
 #endif
 

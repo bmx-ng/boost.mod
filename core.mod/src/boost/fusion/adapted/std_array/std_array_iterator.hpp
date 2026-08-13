@@ -6,7 +6,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(BOOST_FUSION_STD_ARRAY_ARRAY_ITERATOR_01062013_1700)
+#ifndef BOOST_FUSION_STD_ARRAY_ARRAY_ITERATOR_01062013_1700
 #define BOOST_FUSION_STD_ARRAY_ARRAY_ITERATOR_01062013_1700
 
 #include <cstddef>
@@ -18,6 +18,11 @@
 #include <boost/type_traits/is_const.hpp>
 #include <boost/fusion/iterator/iterator_facade.hpp>
 #include <boost/fusion/adapted/std_array/detail/array_size.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -99,9 +104,11 @@ namespace boost { namespace fusion
                 return type();
             }
         };
-
-        BOOST_DELETED_FUNCTION(std_array_iterator& operator=(std_array_iterator const&))
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #endif

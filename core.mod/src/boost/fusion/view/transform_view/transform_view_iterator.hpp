@@ -4,7 +4,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(FUSION_TRANSFORM_VIEW_ITERATOR_07162005_1033)
+#ifndef FUSION_TRANSFORM_VIEW_ITERATOR_07162005_1033
 #define FUSION_TRANSFORM_VIEW_ITERATOR_07162005_1033
 
 #include <boost/fusion/support/config.hpp>
@@ -19,6 +19,14 @@
 #include <boost/fusion/view/transform_view/detail/advance_impl.hpp>
 #include <boost/fusion/view/transform_view/detail/distance_impl.hpp>
 #include <boost/fusion/view/transform_view/detail/equal_to_impl.hpp>
+#include <boost/fusion/view/transform_view/detail/key_of_impl.hpp>
+#include <boost/fusion/view/transform_view/detail/value_of_data_impl.hpp>
+#include <boost/fusion/view/transform_view/detail/deref_data_impl.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -41,9 +49,6 @@ namespace boost { namespace fusion
 
         first_type first;
         transform_type f;
-
-        // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(transform_view_iterator& operator= (transform_view_iterator const&))
     };
 
     // Binary Version
@@ -68,11 +73,12 @@ namespace boost { namespace fusion
         first1_type first1;
         first2_type first2;
         transform_type f;
-
-        // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(transform_view_iterator2& operator= (transform_view_iterator2 const&))
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
 namespace std
