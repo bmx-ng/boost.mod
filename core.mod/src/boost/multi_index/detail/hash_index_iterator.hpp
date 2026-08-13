@@ -1,4 +1,4 @@
-/* Copyright 2003-2020 Joaquin M Lopez Munoz.
+/* Copyright 2003-2026 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -14,12 +14,11 @@
 #endif
 
 #include <boost/config.hpp> /* keep it first to prevent nasty warns in MSVC */
+#include <boost/multi_index/detail/raw_ptr.hpp>
 #include <boost/operators.hpp>
 
 #if !defined(BOOST_MULTI_INDEX_DISABLE_SERIALIZATION)
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/split_member.hpp>
-#include <boost/serialization/version.hpp>
+#include <boost/core/serialization.hpp>
 #endif
 
 namespace boost{
@@ -67,15 +66,19 @@ public:
    * see explanation in safe_mode_iterator notes in safe_mode.hpp.
    */
   
-  BOOST_SERIALIZATION_SPLIT_MEMBER()
+  template<class Archive>
+  void serialize(Archive& ar,const unsigned int version)
+  {
+    core::split_member(ar,*this,version);
+  }
 
   typedef typename Node::base_type node_base_type;
 
   template<class Archive>
   void save(Archive& ar,const unsigned int)const
   {
-    node_base_type* bnode=node;
-    ar<<serialization::make_nvp("pointer",bnode);
+    node_base_type* bnode=get_node();
+    ar<<core::make_nvp("pointer",bnode);
   }
 
   template<class Archive>
@@ -89,11 +92,11 @@ public:
     Archive& ar,const unsigned int version,hashed_index_global_iterator_tag)
   {
     node_base_type* bnode;
-    ar>>serialization::make_nvp("pointer",bnode);
-    node=static_cast<Node*>(bnode);
+    ar>>core::make_nvp("pointer",bnode);
+    node=typename Node::pointer(static_cast<Node*>(bnode));
     if(version<1){
       BucketArray* throw_away; /* consume unused ptr */
-      ar>>serialization::make_nvp("pointer",throw_away);
+      ar>>core::make_nvp("pointer",throw_away);
     }
   }
 
@@ -102,14 +105,14 @@ public:
     Archive& ar,const unsigned int version,hashed_index_local_iterator_tag)
   {
     node_base_type* bnode;
-    ar>>serialization::make_nvp("pointer",bnode);
-    node=static_cast<Node*>(bnode);
+    ar>>core::make_nvp("pointer",bnode);
+    node=typename Node::pointer(static_cast<Node*>(bnode));
     if(version<1){
       BucketArray* buckets;
-      ar>>serialization::make_nvp("pointer",buckets);
-      if(buckets&&node&&node->impl()==buckets->end()->prior()){
+      ar>>core::make_nvp("pointer",buckets);
+      if(buckets&&bnode&&node->impl()==buckets->end()->prior()){
         /* end local_iterators used to point to end node, now they are null */
-        node=0;
+        node=typename Node::pointer(0);
       }
     }
   }
@@ -119,7 +122,7 @@ public:
 
   typedef Node node_type;
 
-  Node* get_node()const{return node;}
+  Node* get_node()const{return raw_ptr<Node*>(node);}
 
 private:
 
@@ -133,7 +136,7 @@ private:
     Node::template increment_local<IndexCategory>(node);
   }
 
-  Node* node;
+  typename Node::pointer node;
 };
 
 template<

@@ -1,11 +1,10 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
 // Copyright (c) 2007-2015 Barend Gehrels, Amsterdam, the Netherlands.
-// Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland.
+// Copyright (c) 2017-2023 Adam Wulkiewicz, Lodz, Poland.
 
 // This file was modified by Oracle on 2013-2022.
 // Modifications copyright (c) 2013-2022 Oracle and/or its affiliates.
-
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Use, modification and distribution is subject to the Boost Software License,
@@ -19,16 +18,16 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <tuple>
 #include <type_traits>
 
 #include <boost/throw_exception.hpp>
-#include <boost/tuple/tuple.hpp>
 
 #include <boost/geometry/core/assert.hpp>
 #include <boost/geometry/core/coordinate_dimension.hpp>
 #include <boost/geometry/core/exception.hpp>
 #include <boost/geometry/core/static_assert.hpp>
-#include <boost/geometry/util/condition.hpp>
+#include <boost/geometry/util/constexpr.hpp>
 #include <boost/geometry/util/sequence.hpp>
 
 namespace boost { namespace geometry {
@@ -67,7 +66,7 @@ public:
     static const std::size_t static_width = Width;
     static const std::size_t static_height = Height;
     static const std::size_t static_size = Width * Height;
-    
+
     inline matrix()
     {
         std::fill_n(m_array, static_size, 'F');
@@ -81,7 +80,7 @@ public:
     inline char get() const
     {
         static const std::size_t index = F1 * Width + F2;
-        BOOST_STATIC_ASSERT(index < static_size);
+        static_assert(index < static_size, "Invalid index pair (out of bounds).");
         return m_array[index];
     }
 
@@ -93,7 +92,7 @@ public:
     inline void set()
     {
         static const std::size_t index = F1 * Width + F2;
-        BOOST_STATIC_ASSERT(index < static_size);
+        static_assert(index < static_size, "Invalid index pair (out of bounds).");
         m_array[index] = V;
     }
 
@@ -117,7 +116,7 @@ public:
     {
         return static_size;
     }
-    
+
     inline const char * data() const
     {
         return m_array;
@@ -163,7 +162,7 @@ public:
     template <field F1, field F2, char D>
     inline bool may_update() const
     {
-        BOOST_STATIC_ASSERT('0' <= D && D <= '9');
+        static_assert('0' <= D && D <= '9', "D must be digit.");
         char const c = m_matrix.template get<F1, F2>();
         return D > c || c > '9';
     }
@@ -171,7 +170,7 @@ public:
     template <field F1, field F2, char V>
     inline void update()
     {
-        BOOST_STATIC_ASSERT(('0' <= V && V <= '9') || V == 'T');
+        static_assert(('0' <= V && V <= '9') || V == 'T', "D must be digit or T");
         char const c = m_matrix.template get<F1, F2>();
         // If c == T and V == T it will be set anyway but that's fine
         if (V > c || c > '9')
@@ -183,7 +182,7 @@ public:
     template <field F1, field F2, char V>
     inline void set()
     {
-        BOOST_STATIC_ASSERT(('0' <= V && V <= '9') || V == 'T');
+        static_assert(('0' <= V && V <= '9') || V == 'T', "V must be digit or T");
         m_matrix.template set<F1, F2, V>();
     }
 
@@ -250,7 +249,7 @@ public:
     inline char get() const
     {
         static const std::size_t index = F1 * Width + F2;
-        BOOST_STATIC_ASSERT(index < static_size);
+        static_assert(index < static_size, "Index pair invalid (out of bounds).");
         return m_array[index];
     }
 
@@ -293,15 +292,18 @@ struct interrupt_dispatch<Mask, true>
     template <char V>
     static inline bool check_element(char m)
     {
-        if ( BOOST_GEOMETRY_CONDITION(V >= '0' && V <= '9') )
+        if BOOST_GEOMETRY_CONSTEXPR (V >= '0' && V <= '9')
         {
             return m == 'F' || ( m < V && m >= '0' && m <= '9' );
         }
-        else if ( BOOST_GEOMETRY_CONDITION(V == 'T') )
+        else if BOOST_GEOMETRY_CONSTEXPR (V == 'T')
         {
             return m == 'F';
         }
-        return false;
+        else
+        {
+            return false;
+        }
     }
 };
 
@@ -355,10 +357,10 @@ struct may_update_dispatch
     template <field F1, field F2, char D, typename Matrix>
     static inline bool apply(Mask const& mask, Matrix const& matrix)
     {
-        BOOST_STATIC_ASSERT('0' <= D && D <= '9');
+        static_assert('0' <= D && D <= '9', "D must be digit.");
 
         char const m = mask.template get<F1, F2>();
-        
+
         if ( m == 'F' )
         {
             return true;
@@ -645,14 +647,14 @@ struct static_mask
     static const std::size_t static_height = Height;
     static const std::size_t static_size = Width * Height;
 
-    BOOST_STATIC_ASSERT(
-        std::size_t(util::sequence_size<Seq>::value) == static_size);
-    
+    static_assert(std::size_t(util::sequence_size<Seq>::value) == static_size,
+        "Sequence must match matrix size.");
+
     template <detail::relate::field F1, detail::relate::field F2>
     struct static_get
     {
-        BOOST_STATIC_ASSERT(std::size_t(F1) < static_height);
-        BOOST_STATIC_ASSERT(std::size_t(F2) < static_width);
+        static_assert(std::size_t(F1) < static_height, "Index F1 out of bounds.");
+        static_assert(std::size_t(F2) < static_width, "Index F2 out of bounds.");
 
         static const char value
             = util::sequence_element<F1 * static_width + F2, Seq>::value;
@@ -744,7 +746,7 @@ struct static_interrupt_dispatch<StaticMask, V, F1, F2, true, IsSequence>
     static const char mask_el = StaticMask::template static_get<F1, F2>::value;
 
     static const bool value
-        = ( V >= '0' && V <= '9' ) ? 
+        = ( V >= '0' && V <= '9' ) ?
           ( mask_el == 'F' || ( mask_el < V && mask_el >= '0' && mask_el <= '9' ) ) :
           ( ( V == 'T' ) ? mask_el == 'F' : false );
 };
@@ -930,7 +932,7 @@ struct static_check_dispatch
             && per_one<exterior, boundary>::apply(matrix)
             && per_one<exterior, exterior>::apply(matrix);
     }
-    
+
     template <field F1, field F2>
     struct per_one
     {
@@ -1188,7 +1190,7 @@ template <typename Geometry>
 struct result_dimension
 {
     static const std::size_t dim = geometry::dimension<Geometry>::value;
-    BOOST_STATIC_ASSERT(dim >= 0);
+    static_assert(dim >= 0, "dim must be non-negative.");
     static const char value = (dim <= 9) ? ('0' + dim) : 'T';
 };
 

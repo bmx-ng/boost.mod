@@ -1,4 +1,4 @@
-/* Copyright 2003-2016 Joaquin M Lopez Munoz.
+/* Copyright 2003-2025 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -18,8 +18,8 @@
 #include <boost/type_traits/alignment_of.hpp> 
 
 #if !defined(BOOST_MULTI_INDEX_DISABLE_SERIALIZATION)
-#include <boost/archive/archive_exception.hpp>
-#include <boost/serialization/access.hpp>
+#include <boost/core/serialization.hpp>
+#include <boost/multi_index/detail/bad_archive_exception.hpp>
 #include <boost/throw_exception.hpp> 
 #endif
 
@@ -105,28 +105,19 @@ Node* node_from_value(const Value* p)
  * somehow invalid archive.
  */
 
-#if defined(BOOST_NO_ARGUMENT_DEPENDENT_LOOKUP)
-namespace serialization{
-#else
 namespace multi_index{
 namespace detail{
-#endif
 
 template<class Archive,typename Value,typename Allocator>
 inline void load_construct_data(
   Archive&,boost::multi_index::detail::index_node_base<Value,Allocator>*,
   const unsigned int)
 {
-  throw_exception(
-    archive::archive_exception(archive::archive_exception::other_exception));
+  throw_exception(boost::multi_index::detail::bad_archive_exception());
 }
 
-#if defined(BOOST_NO_ARGUMENT_DEPENDENT_LOOKUP)
-} /* namespace serialization */
-#else
 } /* namespace multi_index::detail */
 } /* namespace multi_index */
-#endif
 
 #endif
 

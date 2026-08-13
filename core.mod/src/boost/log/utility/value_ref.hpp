@@ -112,7 +112,7 @@ protected:
 
 protected:
     //! Default constructor
-    singular_ref() BOOST_NOEXCEPT : m_ptr(NULL)
+    BOOST_CONSTEXPR singular_ref() BOOST_NOEXCEPT : m_ptr(NULL)
     {
     }
 
@@ -255,6 +255,7 @@ class variant_ref
 public:
     //! Referenced value type
     typedef T value_type;
+    static_assert(mpl::size< value_type >::value > 0, "Boost.Log: List of types referenced by value_ref must not be empty");
     //! Tag type
     typedef TagT tag_type;
 
@@ -270,7 +271,7 @@ protected:
 
 protected:
     //! Default constructor
-    variant_ref() BOOST_NOEXCEPT : m_ptr(NULL), m_type_idx(0)
+    BOOST_CONSTEXPR variant_ref() BOOST_NOEXCEPT : m_ptr(NULL), m_type_idx(0u)
     {
     }
 
@@ -447,12 +448,7 @@ public:
     /*!
      * Default constructor. Creates a reference wrapper that does not refer to a value.
      */
-    BOOST_DEFAULTED_FUNCTION(value_ref(), BOOST_NOEXCEPT {})
-
-    /*!
-     * Copy constructor.
-     */
-    BOOST_DEFAULTED_FUNCTION(value_ref(value_ref const& that), BOOST_NOEXCEPT : base_type(static_cast< base_type const& >(that)) {})
+    BOOST_DEFAULTED_FUNCTION(BOOST_CONSTEXPR value_ref(), BOOST_NOEXCEPT {})
 
     /*!
      * Initializing constructor. Creates a reference wrapper that refers to the specified value.
@@ -461,7 +457,7 @@ public:
     explicit value_ref(U const& val
 #ifndef BOOST_LOG_DOXYGEN_PASS
 // MSVC-8 can't handle SFINAE in this case properly and often wrongly disables this constructor
-#if !defined(_MSC_VER) || (_MSC_VER + 0) >= 1500
+#if !defined(BOOST_MSVC) || BOOST_MSVC >= 1500
         , typename boost::enable_if_c< compatibility_traits::BOOST_NESTED_TEMPLATE is_compatible< value_type, U >::value, boost::log::aux::sfinae_dummy >::type = boost::log::aux::sfinae_dummy()
 #endif
 #endif

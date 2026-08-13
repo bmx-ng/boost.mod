@@ -6,11 +6,11 @@ Import BRL.StandardIO
 Import "timestamp.c"
 
 Extern
-	Function timestamp(fromFile$z, toFile$z)
+	Function timestamp(fromFile:String, toFile:String)
 End Extern
 
 
-Local fromBase:String = "/PATH/TO/boost_1_80_0/boost/"
+Local fromBase:String = "/PATH/TO/boost_1_92_0/boost/"
 Local toBase:String = "/PATH/TO/boost.mod/core.mod/src/boost/"
 
 processDir(fromBase, toBase)

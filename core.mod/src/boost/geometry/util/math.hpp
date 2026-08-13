@@ -4,8 +4,8 @@
 // Copyright (c) 2008-2015 Bruno Lalande, Paris, France.
 // Copyright (c) 2009-2015 Mateusz Loskot, London, UK.
 
-// This file was modified by Oracle on 2014-2021.
-// Modifications copyright (c) 2014-2021, Oracle and/or its affiliates.
+// This file was modified by Oracle on 2014-2022.
+// Modifications copyright (c) 2014-2022, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adeel Ahmad, as part of Google Summer of Code 2018 program
 // Contributed and/or modified by Vissarion Fysikopoulos, on behalf of Oracle
@@ -31,10 +31,10 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 //#include <boost/math/special_functions/round.hpp>
-#include <boost/numeric/conversion/cast.hpp>
 
 #include <boost/geometry/core/cs.hpp>
 
+#include <boost/geometry/util/numeric_cast.hpp>
 #include <boost/geometry/util/select_most_precise.hpp>
 
 namespace boost { namespace geometry
@@ -229,7 +229,7 @@ struct smaller<Type, true>
         {
             return false;
         }
-        
+
         return ! equals<Type, true>::apply(b, a, equals_default_policy());
     }
 };
@@ -351,7 +351,7 @@ struct square_root<T, true>
         return square_root_for_fundamental_fp
             <
                 double
-            >::apply(boost::numeric_cast<double>(value));
+            >::apply(util::numeric_cast<double>(value));
     }
 };
 
@@ -450,7 +450,7 @@ struct define_half_pi
 template <typename T>
 struct relaxed_epsilon
 {
-    static inline T apply(const T& factor)
+    static inline T apply(T const& factor)
     {
         return factor * std::numeric_limits<T>::epsilon();
     }
@@ -499,7 +499,7 @@ struct rounding_cast
 {
     static inline Result apply(Source const& v)
     {
-        return boost::numeric_cast<Result>(v);
+        return util::numeric_cast<Result>(v);
     }
 };
 
@@ -519,7 +519,7 @@ struct rounding_cast<Result, Source, true, false>
 {
     static inline Result apply(Source const& v)
     {
-        return boost::numeric_cast<Result>(v < Source(0) ?
+        return util::numeric_cast<Result>(v < Source(0) ?
                                             v - Source(0.5) :
                                             v + Source(0.5));
     }
@@ -663,6 +663,20 @@ inline T r2d()
     static T const conversion_coefficient = T(180.0) / geometry::math::pi<T>();
     return conversion_coefficient;
 }
+
+/*!
+\brief Wraps an angle in the range [-pi, +pi] (both inclusive)
+*/
+template <typename T>
+inline T wrap_azimuth_in_radian(T const& azimuth)
+{
+    static T const pi = geometry::math::pi<T>();
+    static T const two_pi = geometry::math::two_pi<T>();
+    T result = azimuth;
+    while (result > pi) { result -= two_pi; }
+    while (result < -pi) { result += two_pi; }
+    return result;
+};
 
 
 #ifndef DOXYGEN_NO_DETAIL
@@ -845,16 +859,16 @@ inline void sin_cos_degrees(T const& x,
 {
     // In order to minimize round-off errors, this function exactly reduces
     // the argument to the range [-45, 45] before converting it to radians.
-    T remainder; int quotient;
 
-    remainder = math::mod(x, T(360));
-    quotient = floor(remainder / 90 + T(0.5));
-    remainder -= 90 * quotient;
+    T remainder = math::mod(x, T(360));
+    T const quotient = std::floor(remainder / T(90) + T(0.5));
+    remainder -= T(90) * quotient;
 
     // Convert to radians.
     remainder *= d2r<T>();
 
-    T s = sin(remainder), c = cos(remainder);
+    T const s = sin(remainder);
+    T const c = cos(remainder);
 
     switch (unsigned(quotient) & 3U)
     {
@@ -867,7 +881,8 @@ inline void sin_cos_degrees(T const& x,
     // Set sign of 0 results. -0 only produced for sin(-0).
     if (x != 0)
     {
-        sinx += T(0); cosx += T(0);
+        sinx += T(0);
+        cosx += T(0);
     }
 }
 

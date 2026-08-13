@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2022 Bruce A Henderson
+' Copyright (c) 2007-2026 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,13 @@ bbdoc: Boost
 End Rem
 Module Boost.Core
 
-ModuleInfo "Version: 1.06"
+ModuleInfo "Version: 1.07"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2022 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2026 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.07"
+ModuleInfo "History: Updated to boost 1.92"
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Updated to boost 1.80"
 ModuleInfo "History: 1.05"

@@ -1,9 +1,10 @@
 // Boost.Geometry Index
 //
-// Copyright (c) 2011-2015 Adam Wulkiewicz, Lodz, Poland.
+// Copyright (c) 2011-2023 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2021.
-// Modifications copyright (c) 2021 Oracle and/or its affiliates.
+// This file was modified by Oracle on 2021-2023.
+// Modifications copyright (c) 2021-2023 Oracle and/or its affiliates.
+// Contributed and/or modified by Vissarion Fysikopoulos, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 //
 // Use, modification and distribution is subject to the Boost Software License,
@@ -13,13 +14,12 @@
 #ifndef BOOST_GEOMETRY_INDEX_DETAIL_SERIALIZATION_HPP
 #define BOOST_GEOMETRY_INDEX_DETAIL_SERIALIZATION_HPP
 
-#include <boost/type_traits/alignment_of.hpp>
-#include <boost/type_traits/aligned_storage.hpp>
+#include <memory>
 
-//#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/serialization.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/version.hpp>
-//#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/nvp.hpp>
 
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
@@ -48,7 +48,7 @@ class rtree;
 
 namespace detail {
 
-// TODO - use boost::move?
+// TODO - use std::move?
 template<typename T>
 class serialization_storage
 {
@@ -64,10 +64,10 @@ public:
     }
     T * address()
     {
-        return static_cast<T*>(m_storage.address());
+        return reinterpret_cast<T*>(&m_storage);
     }
 private:
-    boost::aligned_storage<sizeof(T), boost::alignment_of<T>::value> m_storage;
+    alignas(T) unsigned char m_storage[sizeof(T)];
 };
 
 // TODO - save and load item_version? see: collections_load_imp and collections_save_imp
@@ -77,7 +77,7 @@ private:
 template <typename T, typename Archive> inline
 T serialization_load(const char * name, Archive & ar)
 {
-    namespace bs = boost::serialization;    
+    namespace bs = boost::serialization;
     serialization_storage<T> storage(ar, bs::version<T>::value);        // load_construct_data
     ar >> boost::serialization::make_nvp(name, *storage.address());   // serialize
     //ar >> *storage.address();                                           // serialize
@@ -88,11 +88,11 @@ template <typename T, typename Archive> inline
 void serialization_save(T const& t, const char * name, Archive & ar)
 {
     namespace bs = boost::serialization;
-    bs::save_construct_data_adl(ar, boost::addressof(t), bs::version<T>::value);  // save_construct_data
+    bs::save_construct_data_adl(ar, std::addressof(t), bs::version<T>::value);  // save_construct_data
     ar << boost::serialization::make_nvp(name, t);                                // serialize
     //ar << t;                                                                      // serialize
 }
-    
+
 }}}}
 
 // TODO - move to index/serialization/rtree.hpp
@@ -251,7 +251,7 @@ struct serialize_point
     template <typename Archive>
     static inline void save(Archive & ar, P const& p, unsigned int version)
     {
-        typename coordinate_type<P>::type c = get<I>(p);
+        coordinate_type_t<P> c = get<I>(p);
         ar << boost::serialization::make_nvp("c", c);
         serialize_point<P, I+1, D>::save(ar, p, version);
     }
@@ -259,7 +259,7 @@ struct serialize_point
     template <typename Archive>
     static inline void load(Archive & ar, P & p, unsigned int version)
     {
-        typename geometry::coordinate_type<P>::type c;
+        geometry::coordinate_type_t<P> c;
         ar >> boost::serialization::make_nvp("c", c);
         set<I>(p, c);
         serialize_point<P, I+1, D>::load(ar, p, version);
@@ -421,7 +421,7 @@ private:
         if ( current_level < leafs_level )
         {
             node_pointer n = rtree::create_node<allocators_type, internal_node>::apply(allocators);         // MAY THROW (A)
-            subtree_destroyer auto_remover(n, allocators);    
+            subtree_destroyer auto_remover(n, allocators);
             internal_node & in = rtree::get<internal_node>(*n);
 
             elements_type & elements = rtree::elements(in);
@@ -482,7 +482,7 @@ public:
     typedef typename Rtree::value_type value_type;
     typedef typename Rtree::options_type options_type;
     typedef typename Rtree::box_type box_type;
-    typedef typename Rtree::allocators_type allocators_type;    
+    typedef typename Rtree::allocators_type allocators_type;
 
     const_private_view(Rtree const& rt) : m_rtree(rt) {}
 
@@ -507,7 +507,7 @@ public:
     typedef typename Rtree::value_type value_type;
     typedef typename Rtree::options_type options_type;
     typedef typename Rtree::box_type box_type;
-    typedef typename Rtree::allocators_type allocators_type;    
+    typedef typename Rtree::allocators_type allocators_type;
 
     private_view(Rtree & rt) : m_rtree(rt) {}
 
@@ -565,10 +565,7 @@ void load(Archive & ar, boost::geometry::index::rtree<V, P, I, E, A> & rt, unsig
     typedef boost::geometry::index::rtree<V, P, I, E, A> rtree;
     typedef detail::rtree::private_view<rtree> view;
     typedef typename view::size_type size_type;
-    typedef typename view::translator_type translator_type;
-    typedef typename view::value_type value_type;
     typedef typename view::options_type options_type;
-    typedef typename view::box_type box_type;
     typedef typename view::allocators_type allocators_type;
     typedef typename view::members_holder members_holder;
 

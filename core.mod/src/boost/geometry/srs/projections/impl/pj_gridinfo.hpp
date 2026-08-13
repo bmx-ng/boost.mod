@@ -1,6 +1,8 @@
 // Boost.Geometry
 // This file is manually converted from PROJ4
 
+// Copyright (c) 2023 Adam Wulkiewicz, Lodz, Poland.
+
 // This file was modified by Oracle on 2018, 2019.
 // Modifications copyright (c) 2018-2019, Oracle and/or its affiliates.
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
@@ -41,16 +43,16 @@
 #define BOOST_GEOMETRY_SRS_PROJECTIONS_IMPL_PJ_GRIDINFO_HPP
 
 
-#include <boost/algorithm/string.hpp>
+#include <algorithm>
+#include <cstdint>
+#include <string>
+#include <vector>
 
 #include <boost/geometry/core/assert.hpp>
 #include <boost/geometry/util/math.hpp>
 
-#include <boost/cstdint.hpp>
-
-#include <algorithm>
-#include <string>
-#include <vector>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 
 namespace boost { namespace geometry { namespace projections
@@ -104,7 +106,7 @@ struct pj_ctable
 {
     struct lp_t  { double lam, phi; };
     struct flp_t { float lam, phi; };
-    struct ilp_t { boost::int32_t lam, phi; };
+    struct ilp_t { std::int32_t lam, phi; };
 
     std::string id;         // ascii info
     lp_t ll;                // lower left corner coordinates
@@ -125,7 +127,7 @@ struct pj_ctable
 struct pj_gi_load
 {
     enum format_t { missing = 0, ntv1, ntv2, gtx, ctable, ctable2 };
-    typedef boost::long_long_type offset_t;
+    typedef std::intmax_t offset_t;
 
     explicit pj_gi_load(std::string const& gname = "",
                         format_t f = missing,
@@ -190,18 +192,18 @@ template <typename IStream>
 bool pj_gridinfo_load_ctable(IStream & is, pj_gi_load & gi)
 {
     pj_ctable & ct = gi.ct;
-    
+
     // Move the input stream by the size of the proj4 original CTABLE
     std::size_t header_size = 80
                             + 2 * sizeof(pj_ctable::lp_t)
                             + sizeof(pj_ctable::ilp_t)
                             + sizeof(pj_ctable::flp_t*);
     is.seekg(header_size);
-    
+
     // read all the actual shift values
     std::size_t a_size = ct.lim.lam * ct.lim.phi;
     ct.cvs.resize(a_size);
-    
+
     std::size_t ch_size = sizeof(pj_ctable::flp_t) * a_size;
     is.read(reinterpret_cast<char*>(&ct.cvs[0]), ch_size);
 
@@ -213,7 +215,7 @@ bool pj_gridinfo_load_ctable(IStream & is, pj_gi_load & gi)
     }
 
     return true;
-} 
+}
 
 /************************************************************************/
 /*                  pj_gridinfo_load_ctable2()                          */
@@ -274,8 +276,8 @@ inline bool pj_gridinfo_load_ntv1(IStream & is, pj_gi_load & gi)
 
     std::vector<double> row_buf(r_size);
     gi.ct.cvs.resize(gi.ct.lim.lam * gi.ct.lim.phi);
-    
-    for (boost::int32_t row = 0; row < gi.ct.lim.phi; row++ )
+
+    for (std::int32_t row = 0; row < gi.ct.lim.phi; row++ )
     {
         is.read(reinterpret_cast<char*>(&row_buf[0]), ch_size);
 
@@ -289,7 +291,7 @@ inline bool pj_gridinfo_load_ntv1(IStream & is, pj_gi_load & gi)
             swap_words(reinterpret_cast<char*>(&row_buf[0]), 8, (int)r_size);
 
         // convert seconds to radians
-        for (boost::int32_t i = 0; i < gi.ct.lim.lam; i++ )
+        for (std::int32_t i = 0; i < gi.ct.lim.lam; i++ )
         {
             pj_ctable::flp_t & cvs = gi.ct.cvs[row * gi.ct.lim.lam + (gi.ct.lim.lam - i - 1)];
 
@@ -325,7 +327,7 @@ inline bool pj_gridinfo_load_ntv2(IStream & is, pj_gi_load & gi)
     std::vector<float> row_buf(r_size);
     gi.ct.cvs.resize(gi.ct.lim.lam * gi.ct.lim.phi);
 
-    for (boost::int32_t row = 0; row < gi.ct.lim.phi; row++ )
+    for (std::int32_t row = 0; row < gi.ct.lim.phi; row++ )
     {
         is.read(reinterpret_cast<char*>(&row_buf[0]), ch_size);
 
@@ -341,7 +343,7 @@ inline bool pj_gridinfo_load_ntv2(IStream & is, pj_gi_load & gi)
         }
 
         // convert seconds to radians
-        for (boost::int32_t i = 0; i < gi.ct.lim.lam; i++ )
+        for (std::int32_t i = 0; i < gi.ct.lim.lam; i++ )
         {
             pj_ctable::flp_t & cvs = gi.ct.cvs[row * gi.ct.lim.lam + (gi.ct.lim.lam - i - 1)];
 
@@ -364,9 +366,9 @@ inline bool pj_gridinfo_load_ntv2(IStream & is, pj_gi_load & gi)
 template <typename IStream>
 inline bool pj_gridinfo_load_gtx(IStream & is, pj_gi_load & gi)
 {
-    boost::int32_t words = gi.ct.lim.lam * gi.ct.lim.phi;
+    std::int32_t words = gi.ct.lim.lam * gi.ct.lim.phi;
     std::size_t const ch_size = sizeof(float) * words;
-    
+
     is.seekg(gi.grid_offset);
 
     // TODO: Consider changing this unintuitive code
@@ -475,8 +477,8 @@ inline bool pj_gridinfo_init_ntv2(std::string const& gridname,
                                   IStream & is,
                                   pj_gridinfo & gridinfo)
 {
-    BOOST_STATIC_ASSERT( sizeof(boost::int32_t) == 4 );
-    BOOST_STATIC_ASSERT( sizeof(double) == 8 );
+    static_assert(sizeof(std::int32_t) == 4, "std::int32_t must have 4 bytes width.");
+    static_assert(sizeof(double) == 8, "Double must have 8 bytes width.");
 
     static const double s2r = math::d2r<double>() / 3600.0;
 
@@ -514,11 +516,11 @@ inline bool pj_gridinfo_init_ntv2(std::string const& gridname,
     }
 
     // Get the subfile count out ... all we really use for now.
-    boost::int32_t num_subfiles;
+    std::int32_t num_subfiles;
     memcpy( &num_subfiles, header+8+32, 4 );
 
     // Step through the subfiles, creating a PJ_GRIDINFO for each.
-    for( boost::int32_t subfile = 0; subfile < num_subfiles; subfile++ )
+    for( std::int32_t subfile = 0; subfile < num_subfiles; subfile++ )
     {
         // Read header.
         is.read(header, sizeof(header));
@@ -559,15 +561,15 @@ inline bool pj_gridinfo_init_ntv2(std::string const& gridname,
         ct.del.lam = *((double *) (header+9*16+8));
         ct.del.phi = *((double *) (header+8*16+8));
 
-        ct.lim.lam = (boost::int32_t) (fabs(ur.lam-ct.ll.lam)/ct.del.lam + 0.5) + 1;
-        ct.lim.phi = (boost::int32_t) (fabs(ur.phi-ct.ll.phi)/ct.del.phi + 0.5) + 1;
+        ct.lim.lam = (std::int32_t) (fabs(ur.lam-ct.ll.lam)/ct.del.lam + 0.5) + 1;
+        ct.lim.phi = (std::int32_t) (fabs(ur.phi-ct.ll.phi)/ct.del.phi + 0.5) + 1;
 
         ct.ll.lam *= s2r;
         ct.ll.phi *= s2r;
         ct.del.lam *= s2r;
         ct.del.phi *= s2r;
 
-        boost::int32_t gs_count;
+        std::int32_t gs_count;
         memcpy( &gs_count, header + 8 + 16*10, 4 );
         if( gs_count != ct.lim.lam * ct.lim.phi )
         {
@@ -627,8 +629,8 @@ inline bool pj_gridinfo_init_ntv1(std::string const& gridname,
                                   IStream & is,
                                   pj_gridinfo & gridinfo)
 {
-    BOOST_STATIC_ASSERT( sizeof(boost::int32_t) == 4 );
-    BOOST_STATIC_ASSERT( sizeof(double) == 8 );
+    static_assert(sizeof(std::int32_t) == 4, "std::int32_t must have 4 bytes width.");
+    static_assert(sizeof(double) == 8, "double must have 8 bytes width.");
 
     static const double d2r = math::d2r<double>();
 
@@ -654,7 +656,7 @@ inline bool pj_gridinfo_init_ntv1(std::string const& gridname,
     }
 
     // NTv1 grid shift file has wrong record count, corrupt?
-    if( *((boost::int32_t *) (header+8)) != 12 )
+    if( *((std::int32_t *) (header+8)) != 12 )
     {
         return false;
     }
@@ -677,8 +679,8 @@ inline bool pj_gridinfo_init_ntv1(std::string const& gridname,
     ur.phi = *((double *) (header+40));
     ct.del.lam = *((double *) (header+104));
     ct.del.phi = *((double *) (header+88));
-    ct.lim.lam = (boost::int32_t) (fabs(ur.lam-ct.ll.lam)/ct.del.lam + 0.5) + 1;
-    ct.lim.phi = (boost::int32_t) (fabs(ur.phi-ct.ll.phi)/ct.del.phi + 0.5) + 1;
+    ct.lim.lam = (std::int32_t) (fabs(ur.lam-ct.ll.lam)/ct.del.lam + 0.5) + 1;
+    ct.lim.phi = (std::int32_t) (fabs(ur.phi-ct.ll.phi)/ct.del.phi + 0.5) + 1;
 
     ct.ll.lam *= d2r;
     ct.ll.phi *= d2r;
@@ -704,8 +706,8 @@ inline bool pj_gridinfo_init_gtx(std::string const& gridname,
                                  IStream & is,
                                  pj_gridinfo & gridinfo)
 {
-    BOOST_STATIC_ASSERT( sizeof(boost::int32_t) == 4 );
-    BOOST_STATIC_ASSERT( sizeof(double) == 8 );
+    static_assert(sizeof(std::int32_t) == 4, "std::int32_t must have 4 bytes width");
+    static_assert(sizeof(double) == 8, "double must have 8 bytes width.");
 
     static const double d2r = math::d2r<double>();
 
@@ -720,7 +722,7 @@ inline bool pj_gridinfo_init_gtx(std::string const& gridname,
 
     // Regularize fields of interest and extract.
     double         xorigin, yorigin, xstep, ystep;
-    boost::int32_t rows, columns;
+    std::int32_t rows, columns;
 
     if( is_lsb() )
     {
@@ -791,8 +793,8 @@ inline bool pj_gridinfo_init_ctable2(std::string const& gridname,
                                      IStream & is,
                                      pj_gridinfo & gridinfo)
 {
-    BOOST_STATIC_ASSERT( sizeof(boost::int32_t) == 4 );
-    BOOST_STATIC_ASSERT( sizeof(double) == 8 );
+    static_assert(sizeof(std::int32_t) == 4, "std::int32_t must have 4 bytes width");
+    static_assert(sizeof(double) == 8, "double must have 8 bytes width.");
 
     char header[160];
 
@@ -827,12 +829,12 @@ inline bool pj_gridinfo_init_ctable2(std::string const& gridname,
     memcpy( &ct.ll,  header +  96, 40 );
 
     // do some minimal validation to ensure the structure isn't corrupt
-    if ( (ct.lim.lam < 1) || (ct.lim.lam > 100000) 
+    if ( (ct.lim.lam < 1) || (ct.lim.lam > 100000)
       || (ct.lim.phi < 1) || (ct.lim.phi > 100000) )
     {
         return false;
     }
-    
+
     // trim white space and newlines off id
     boost::trim_right_if(ct.id, is_trimmable_char());
 
@@ -856,8 +858,8 @@ inline bool pj_gridinfo_init_ctable(std::string const& gridname,
                                     IStream & is,
                                     pj_gridinfo & gridinfo)
 {
-    BOOST_STATIC_ASSERT( sizeof(boost::int32_t) == 4 );
-    BOOST_STATIC_ASSERT( sizeof(double) == 8 );
+    static_assert(sizeof(std::int32_t) == 4, "std::int32_t must have 4 bytes width.");
+    static_assert(sizeof(double) == 8, "Double must have 8 bytes width.");
 
     // 80 + 2*8 + 2*8 + 2*4
     char header[120];
@@ -879,12 +881,12 @@ inline bool pj_gridinfo_init_ctable(std::string const& gridname,
     memcpy( &ct.ll, header + 80, 40 );
 
     // do some minimal validation to ensure the structure isn't corrupt
-    if ( (ct.lim.lam < 1) || (ct.lim.lam > 100000) 
+    if ( (ct.lim.lam < 1) || (ct.lim.lam > 100000)
       || (ct.lim.phi < 1) || (ct.lim.phi > 100000) )
     {
         return false;
     }
-    
+
     // trim white space and newlines off id
     boost::trim_right_if(ct.id, is_trimmable_char());
 
@@ -923,7 +925,7 @@ inline bool pj_gridinfo_init(std::string const& gridname,
     if ( is.fail() ) {
         return false;
     }
-    
+
     is.seekg(0);
 
     // Determine file type.

@@ -23,7 +23,6 @@
 
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
-#include <boost/static_assert.hpp>
 
 #include <boost/geometry/algorithms/assign.hpp>
 #include <boost/geometry/algorithms/detail/convert_point_to_point.hpp>
@@ -110,12 +109,7 @@ struct point_on_multi
     {
         // Take a point on the first multi-geometry
         // (i.e. the first that is not empty)
-        for (typename boost::range_iterator
-                <
-                    MultiGeometry const
-                >::type it = boost::begin(multi);
-            it != boost::end(multi);
-            ++it)
+        for (auto it = boost::begin(multi); it != boost::end(multi); ++it)
         {
             if (Policy::apply(point, *it))
             {
@@ -219,7 +213,7 @@ inline bool point_on_border(Point& point, Geometry const& geometry)
 
     return dispatch::point_on_border
             <
-                typename tag<Geometry>::type
+                tag_t<Geometry>
             >::apply(point, geometry);
 }
 

@@ -3,7 +3,7 @@
 Defines function-like equivalents to the standard `<type_traits>`, and also
 to some utilities like `std::declval`.
 
-@copyright Louis Dionne 2013-2017
+Copyright Louis Dionne 2013-2022
 Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE.md or copy at http://boost.org/LICENSE_1_0.txt)
  */
@@ -165,6 +165,7 @@ namespace boost { namespace hana { namespace traits {
     BOOST_HANA_INLINE_VARIABLE constexpr auto remove_all_extents = metafunction<std::remove_all_extents>;
 
     // Miscellaneous transformations
+#if __cplusplus < 202302L
     BOOST_HANA_INLINE_VARIABLE constexpr struct aligned_storage_t {
         template <typename Len, typename Align>
         constexpr auto operator()(Len const&, Align const&) const {
@@ -190,6 +191,7 @@ namespace boost { namespace hana { namespace traits {
             return hana::type_c<Result>;
         }
     } aligned_union{};
+#endif
 
     BOOST_HANA_INLINE_VARIABLE constexpr auto decay = metafunction<std::decay>;
     // enable_if

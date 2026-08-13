@@ -1,27 +1,58 @@
-#include <sys/types.h>
-#include <sys/time.h>
 #include <sys/stat.h>
 #include <stdio.h>
 
-void timestamp(const char * fromFile, const char * toFile) {
+#if defined(_WIN32)
+#include <sys/utime.h>
+#else
+#include <sys/time.h>
+#endif
 
-	struct stat st;
+#include "brl.mod/blitz.mod/blitz.h"
 
-	if (stat(fromFile,&st)) {
-		printf("++++ stat failed for %s\n", fromFile);fflush(stdout);
+void timestamp(BBString * fromFile, BBString * toFile) {
+
+	char * f = (char*)bbStringToUTF8String(fromFile);
+
+#if defined(_WIN32)
+	struct _stat64 st;
+	struct __utimbuf64 times;
+
+	if (_stat64(f, &st)) {
+		printf("++++ stat failed for %s\n", f);fflush(stdout);
+		bbMemFree(f);
 		return;
 	}
 
-	struct timeval time[2];
-	
-	time[0].tv_sec   = st.st_atime;
-	time[0].tv_usec  = 0;
-	time[1].tv_sec   = st.st_mtime;
-	time[1].tv_usec  = 0;
+	times.actime = st.st_atime;
+	times.modtime = st.st_mtime;
 
-	if (utimes(toFile, &time)) {
-		printf("++++ utimes failed for %s\n", toFile);fflush(stdout);
+	char * t = (char*)bbStringToUTF8String(toFile);
 
+	if (_utime64(t, &times)) {
+		printf("++++ utime failed for %s\n", t);fflush(stdout);
+	}
+#else
+	struct stat st;
+
+	if (stat(f,&st)) {
+		printf("++++ stat failed for %s\n", f);fflush(stdout);
+		bbMemFree(f);
+		return;
 	}
 
+	struct timeval times[2];
+
+	times[0].tv_sec   = st.st_atime;
+	times[0].tv_usec  = 0;
+	times[1].tv_sec   = st.st_mtime;
+	times[1].tv_usec  = 0;
+
+	char * t = (char*)bbStringToUTF8String(toFile);
+
+	if (utimes(t, times)) {
+		printf("++++ utimes failed for %s\n", t);fflush(stdout);
+	}
+#endif
+	bbMemFree(f);
+	bbMemFree(t);
 }

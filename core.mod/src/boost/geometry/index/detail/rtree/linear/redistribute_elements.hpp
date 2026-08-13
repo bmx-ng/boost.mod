@@ -3,7 +3,7 @@
 // R-tree linear split algorithm implementation
 //
 // Copyright (c) 2008 Federico J. Fernandez.
-// Copyright (c) 2011-2014 Adam Wulkiewicz, Lodz, Poland.
+// Copyright (c) 2011-2022 Adam Wulkiewicz, Lodz, Poland.
 //
 // This file was modified by Oracle on 2019-2020.
 // Modifications copyright (c) 2019-2020 Oracle and/or its affiliates.
@@ -16,6 +16,7 @@
 #ifndef BOOST_GEOMETRY_INDEX_DETAIL_RTREE_LINEAR_REDISTRIBUTE_ELEMENTS_HPP
 #define BOOST_GEOMETRY_INDEX_DETAIL_RTREE_LINEAR_REDISTRIBUTE_ELEMENTS_HPP
 
+#include <algorithm>
 #include <type_traits>
 
 #include <boost/core/ignore_unused.hpp>
@@ -71,12 +72,12 @@ inline R difference(T const& from, T const& to)
 
 // IMPORTANT!
 // Still probably the best way would be providing specialized algorithms for each Indexable-Bounds pair!
-// Probably on pick_seeds algorithm level - For Bounds=Sphere seeds would be choosen differently
+// Probably on pick_seeds algorithm level - For Bounds=Sphere seeds would be chosen differently
 
 // TODO: awulkiew
 // there are loops inside find_greatest_normalized_separation::apply()
 // iteration is done for each DimensionIndex.
-// Separations and seeds for all DimensionIndex(es) could be calculated at once, stored, then the greatest would be choosen.
+// Separations and seeds for all DimensionIndex(es) could be calculated at once, stored, then the greatest would be chosen.
 
 // The following struct/method was adapted for the preliminary version of the R-tree. Then it was called:
 // void find_normalized_separations(std::vector<Box> const& boxes, T& separation, unsigned int& first, unsigned int& second) const
@@ -114,50 +115,52 @@ struct find_greatest_normalized_separation
         BOOST_GEOMETRY_INDEX_ASSERT(elements.size() == elements_count, "unexpected number of elements");
         BOOST_GEOMETRY_INDEX_ASSERT(2 <= elements_count, "unexpected number of elements");
 
-        typename index::detail::strategy_type<Parameters>::type const&
-            strategy = index::detail::get_strategy(parameters);
+        auto const& strategy = index::detail::get_strategy(parameters);
 
         // find the lowest low, highest high
-        bounded_view_type bounded_indexable_0(rtree::element_indexable(elements[0], translator),
-                                              strategy);
+        indexable_type const& indexable_0 = rtree::element_indexable(elements[0], translator);
+        bounded_view_type const bounded_indexable_0(indexable_0, strategy);
         coordinate_type lowest_low = geometry::get<min_corner, DimensionIndex>(bounded_indexable_0);
         coordinate_type highest_high = geometry::get<max_corner, DimensionIndex>(bounded_indexable_0);
 
         // and the lowest high
         coordinate_type lowest_high = highest_high;
         size_t lowest_high_index = 0;
-        for ( size_t i = 1 ; i < elements_count ; ++i )
+        for (size_t i = 1 ; i < elements_count ; ++i)
         {
-            bounded_view_type bounded_indexable(rtree::element_indexable(elements[i], translator),
-                                                strategy);
+            indexable_type const& indexable_i = rtree::element_indexable(elements[i], translator);
+            bounded_view_type const bounded_indexable(indexable_i, strategy);
             coordinate_type min_coord = geometry::get<min_corner, DimensionIndex>(bounded_indexable);
             coordinate_type max_coord = geometry::get<max_corner, DimensionIndex>(bounded_indexable);
 
-            if ( max_coord < lowest_high )
+            if (max_coord < lowest_high)
             {
                 lowest_high = max_coord;
                 lowest_high_index = i;
             }
 
-            if ( min_coord < lowest_low )
+            if (min_coord < lowest_low)
+            {
                 lowest_low = min_coord;
+            }
 
-            if ( highest_high < max_coord )
+            if (highest_high < max_coord)
+            {
                 highest_high = max_coord;
+            }
         }
 
         // find the highest low
         size_t highest_low_index = lowest_high_index == 0 ? 1 : 0;
-        bounded_view_type bounded_indexable_hl(rtree::element_indexable(elements[highest_low_index], translator),
-                                               strategy);
+        indexable_type const& indexable_hl = rtree::element_indexable(elements[highest_low_index], translator);
+        bounded_view_type const bounded_indexable_hl(indexable_hl, strategy);
         coordinate_type highest_low = geometry::get<min_corner, DimensionIndex>(bounded_indexable_hl);
-        for ( size_t i = highest_low_index ; i < elements_count ; ++i )
+        for (size_t i = highest_low_index ; i < elements_count ; ++i)
         {
-            bounded_view_type bounded_indexable(rtree::element_indexable(elements[i], translator),
-                                                strategy);
+            indexable_type const& indexable = rtree::element_indexable(elements[i], translator);
+            bounded_view_type const bounded_indexable(indexable, strategy);
             coordinate_type min_coord = geometry::get<min_corner, DimensionIndex>(bounded_indexable);
-            if ( highest_low < min_coord &&
-                 i != lowest_high_index )
+            if (highest_low < min_coord && i != lowest_high_index)
             {
                 highest_low = min_coord;
                 highest_low_index = i;
@@ -165,12 +168,14 @@ struct find_greatest_normalized_separation
         }
 
         coordinate_type const width = highest_high - lowest_low;
-        
+
         // highest_low - lowest_high
         separation = difference<separation_type>(lowest_high, highest_low);
         // BOOST_GEOMETRY_INDEX_ASSERT(0 <= width);
-        if ( std::numeric_limits<coordinate_type>::epsilon() < width )
+        if (std::numeric_limits<coordinate_type>::epsilon() < width)
+        {
             separation /= width;
+        }
 
         seed1 = highest_low_index;
         seed2 = lowest_high_index;
@@ -237,24 +242,25 @@ struct find_greatest_normalized_separation<Elements, Parameters, Translator, poi
 template <typename Elements, typename Parameters, typename Translator, size_t Dimension>
 struct pick_seeds_impl
 {
-    BOOST_STATIC_ASSERT(0 < Dimension);
+    static_assert(0 < Dimension, "Dimension must be positive.");
 
-    typedef typename Elements::value_type element_type;
-    typedef typename rtree::element_indexable_type<element_type, Translator>::type indexable_type;
+    using element_type = typename Elements::value_type;
+    using indexable_type = typename rtree::element_indexable_type<element_type, Translator>::type;
 
-    typedef find_greatest_normalized_separation<
+    using find_norm_sep = find_greatest_normalized_separation
+    <
         Elements, Parameters, Translator,
-        typename tag<indexable_type>::type, Dimension - 1
-    > find_norm_sep;
+        tag_t<indexable_type>, Dimension - 1
+    >;
 
-    typedef typename find_norm_sep::separation_type separation_type;
+    using separation_type = typename find_norm_sep::separation_type;
 
     static inline void apply(Elements const& elements,
                              Parameters const& parameters,
                              Translator const& tr,
-                             separation_type & separation,
-                             size_t & seed1,
-                             size_t & seed2)
+                             separation_type& separation,
+                             size_t& seed1,
+                             size_t& seed2)
     {
         pick_seeds_impl<Elements, Parameters, Translator, Dimension - 1>::apply(elements, parameters, tr, separation, seed1, seed2);
 
@@ -275,23 +281,24 @@ struct pick_seeds_impl
 template <typename Elements, typename Parameters, typename Translator>
 struct pick_seeds_impl<Elements, Parameters, Translator, 1>
 {
-    typedef typename Elements::value_type element_type;
-    typedef typename rtree::element_indexable_type<element_type, Translator>::type indexable_type;
-    typedef typename coordinate_type<indexable_type>::type coordinate_type;
+    using element_type = typename Elements::value_type;
+    using indexable_type = typename rtree::element_indexable_type<element_type, Translator>::type;
+    using coordinate_type = coordinate_type_t<indexable_type>;
 
-    typedef find_greatest_normalized_separation<
-        Elements, Parameters, Translator,
-        typename tag<indexable_type>::type, 0
-    > find_norm_sep;
+    using find_norm_sep = find_greatest_normalized_separation
+        <
+            Elements, Parameters, Translator,
+            tag_t<indexable_type>, 0
+        >;
 
-    typedef typename find_norm_sep::separation_type separation_type;
+    using separation_type = typename find_norm_sep::separation_type;
 
     static inline void apply(Elements const& elements,
                              Parameters const& parameters,
                              Translator const& tr,
-                             separation_type & separation,
-                             size_t & seed1,
-                             size_t & seed2)
+                             separation_type& separation,
+                             size_t& seed1,
+                             size_t& seed2)
     {
         find_norm_sep::apply(elements, parameters, tr, separation, seed1, seed2);
     }
@@ -426,8 +433,10 @@ struct redistribute_elements<MembersHolder, linear_tag>
                         content_type enlarged_content1 = index::detail::content(enlarged_box1);
                         content_type enlarged_content2 = index::detail::content(enlarged_box2);
 
-                        content_type content_increase1 = enlarged_content1 - content1;
-                        content_type content_increase2 = enlarged_content2 - content2;
+                        content_type const content_increase1
+                            = (std::max)(content_type(0), enlarged_content1 - content1);
+                        content_type const content_increase2
+                            = (std::max)(content_type(0), enlarged_content2 - content2);
 
                         // choose group which box content have to be enlarged least or has smaller content or has fewer elements
                         if ( content_increase1 < content_increase2 ||
@@ -446,7 +455,7 @@ struct redistribute_elements<MembersHolder, linear_tag>
                             content2 = enlarged_content2;
                         }
                     }
-                
+
                     BOOST_GEOMETRY_INDEX_ASSERT(0 < remaining, "unexpected value");
                     --remaining;
                 }

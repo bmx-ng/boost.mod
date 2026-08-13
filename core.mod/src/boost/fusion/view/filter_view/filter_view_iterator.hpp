@@ -5,7 +5,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(FUSION_FILTER_VIEW_ITERATOR_05062005_0849)
+#ifndef FUSION_FILTER_VIEW_ITERATOR_05062005_0849
 #define FUSION_FILTER_VIEW_ITERATOR_05062005_0849
 
 #include <boost/fusion/support/config.hpp>
@@ -25,6 +25,11 @@
 #include <boost/fusion/view/filter_view/detail/deref_data_impl.hpp>
 #include <boost/fusion/view/filter_view/detail/value_of_data_impl.hpp>
 #include <boost/fusion/view/filter_view/detail/key_of_impl.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -59,16 +64,13 @@ namespace boost { namespace fusion
         filter_iterator(First const& in_first)
             : first(filter::iter_call(first_converter::call(in_first))) {}
 
-        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        filter_iterator(filter_iterator const& rhs)
-            : first(rhs.first) {}
-
         first_type first;
-
-        // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(filter_iterator& operator= (filter_iterator const&))
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
 namespace std

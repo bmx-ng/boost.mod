@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2022 Bruce A Henderson
+' Copyright (c) 2013-2026 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,12 @@ bbdoc: Boost Locale
 End Rem
 Module Boost.Locale
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2013-2022 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2013-2026 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Update to Boost 1.92."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Refactored."
 ModuleInfo "History: 1.03"
@@ -80,8 +82,7 @@ Type TBLGenerator
 		Return New TBLLocale(_generate(id))
 	End Method
 
-	Private
-	Method _generate:Byte Ptr(id:String)
+	Internal Method _generate:Byte Ptr(id:String)
 		Return bmx_boostlocale_generator_generate(genPtr, id)
 	End Method
 End Type
@@ -120,7 +121,7 @@ Type TBLLocale
 	Method New()
 	End Method
 
-	Method New(localePtr:Byte Ptr)
+	Internal Method New(localePtr:Byte Ptr)
 		Self.localePtr = localePtr
 	End Method
 

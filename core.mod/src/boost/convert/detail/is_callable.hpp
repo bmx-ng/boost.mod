@@ -5,9 +5,10 @@
 #ifndef BOOST_CONVERT_IS_CALLABLE_HPP
 #define BOOST_CONVERT_IS_CALLABLE_HPP
 
+#include <boost/type_traits/decay.hpp>
 #include <boost/convert/detail/has_member.hpp>
 
-namespace boost::cnv::detail
+namespace boost { namespace cnv { namespace detail
 {
     using yes_type = ::boost::type_traits::yes_type;
     using  no_type = ::boost::type_traits:: no_type;
@@ -37,7 +38,7 @@ namespace boost::cnv::detail
         static yes_type test (...);
         static no_type  test (not_found);
     };
-}
+}}}
 
 // No-args case needs to be implemented differently and has not been implemented yet.
 //        template <typename R>

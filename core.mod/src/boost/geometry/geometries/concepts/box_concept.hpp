@@ -30,27 +30,11 @@
 namespace boost { namespace geometry { namespace concepts
 {
 
-
-/*!
-\brief Box concept
-\ingroup concepts
-\par Formal definition:
-The box concept is defined as following:
-- there must be a specialization of traits::tag defining box_tag as type
-- there must be a specialization of traits::point_type to define the
-  underlying point type (even if it does not consist of points, it should define
-  this type, to indicate the points it can work with)
-- there must be a specialization of traits::indexed_access, per index
-  (min_corner, max_corner) and per dimension, with two functions:
-  - get to get a coordinate value
-  - set to set a coordinate value (this one is not checked for ConstBox)
-*/
 template <typename Geometry>
 class Box
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
-    typedef typename point_type<Geometry>::type point_type;
-
+    using point_type = point_type_t<Geometry>;
 
     template
     <
@@ -95,8 +79,8 @@ template <typename Geometry>
 class ConstBox
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
-    typedef typename point_type<Geometry>::type point_type;
-    typedef typename coordinate_type<Geometry>::type coordinate_type;
+    using point_type = point_type_t<Geometry>;
+    using coordinate_type = coordinate_type_t<Geometry>;
 
     template
     <

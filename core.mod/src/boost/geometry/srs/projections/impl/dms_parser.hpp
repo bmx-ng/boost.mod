@@ -1,6 +1,7 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
+// Copyright (c) 2023 Adam Wulkiewicz, Lodz, Poland.
 
 // This file was modified by Oracle on 2017, 2018.
 // Modifications copyright (c) 2017-2018, Oracle and/or its affiliates.
@@ -39,10 +40,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+#include <algorithm>
 #include <string>
-
-#include <boost/algorithm/string.hpp>
-#include <boost/static_assert.hpp>
+#include <ostream>
 
 #include <boost/geometry/core/config.hpp>
 #include <boost/geometry/core/cs.hpp>
@@ -100,10 +100,8 @@ struct dms_parser
     // We have to change the switch then -> specializations
 
     // For now: make it (compile-time) case sensitive
-    static const int diff = 'a' - 'A';
-#ifndef __GNUC__
-    BOOST_STATIC_ASSERT((diff > 0)); // make sure we've the right assumption. GCC does not accept this here.
-#endif
+    static constexpr int diff = 'a' - 'A';
+    static_assert(diff > 0, "Character set must be case-sensitive.");
     static const char n_alter = N <= 'Z' ? N + diff : N - diff;
     static const char e_alter = E <= 'Z' ? E + diff : E - diff;
     static const char s_alter = S <= 'Z' ? S + diff : S - diff;
@@ -123,16 +121,10 @@ struct dms_parser
         bool has_dms[3];
 
         dms_value()
-#ifdef BOOST_GEOMETRY_CXX11_ARRAY_UNIFIED_INITIALIZATION
-            : dms{0, 0, 0}
-            , has_dms{false, false, false}
-        {}
-#else
         {
             std::fill(dms, dms + 3, T(0));
             std::fill(has_dms, has_dms + 3, false);
         }
-#endif
     };
 
 

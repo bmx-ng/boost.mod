@@ -10,6 +10,7 @@
 #ifndef BOOST_ALGORITHM_BOYER_MOORE_SEARCH_HPP
 #define BOOST_ALGORITHM_BOYER_MOORE_SEARCH_HPP
 
+#include <algorithm>    // for std::reverse_copy
 #include <iterator>     // for std::iterator_traits
 
 #include <boost/config.hpp>
@@ -19,7 +20,7 @@
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
-#include <boost/utility/enable_if.hpp>
+#include <boost/core/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 #include <boost/algorithm/searching/detail/bm_traits.hpp>
@@ -107,12 +108,11 @@ Requirements:
         typename traits::skip_table_t skip_;
         std::vector <difference_type> suffix_;
 
-        /// \fn operator ( corpusIter corpus_first, corpusIter corpus_last, Pred p )
+        /// \fn do_search ( corpusIter corpus_first, corpusIter corpus_last )
         /// \brief Searches the corpus for the pattern that was passed into the constructor
-        /// 
+        ///
         /// \param corpus_first The start of the data to search (Random Access Iterator)
         /// \param corpus_last  One past the end of the data to search
-        /// \param p            A predicate used for the search comparisons.
         ///
         template <typename corpusIter>
         std::pair<corpusIter, corpusIter>

@@ -4,8 +4,9 @@
 //
 // Copyright (c) 2011-2014 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2019-2021.
-// Modifications copyright (c) 2019-2021 Oracle and/or its affiliates.
+// This file was modified by Oracle on 2019-2023.
+// Modifications copyright (c) 2019-2023 Oracle and/or its affiliates.
+// Contributed and/or modified by Vissarion Fysikopoulos, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 //
 // Use, modification and distribution is subject to the Boost Software License,
@@ -15,11 +16,13 @@
 #ifndef BOOST_GEOMETRY_INDEX_DETAIL_RTREE_VISITORS_DISTANCE_QUERY_HPP
 #define BOOST_GEOMETRY_INDEX_DETAIL_RTREE_VISITORS_DISTANCE_QUERY_HPP
 
+#include <memory>
 #include <queue>
 
 #include <boost/geometry/index/detail/distance_predicates.hpp>
 #include <boost/geometry/index/detail/predicates.hpp>
 #include <boost/geometry/index/detail/priority_dequeue.hpp>
+#include <boost/geometry/index/detail/rtree/node/weak_visitor.hpp>
 #include <boost/geometry/index/detail/rtree/node/node_elements.hpp>
 #include <boost/geometry/index/detail/translator.hpp>
 #include <boost/geometry/index/parameters.hpp>
@@ -258,7 +261,7 @@ private:
                         && calculate_value_distance::apply(predicate(), m_tr(v), m_strategy, value_distance))
                     {
                         // store value
-                        store_value(value_distance, boost::addressof(v));
+                        store_value(value_distance, std::addressof(v));
                     }
                 }
             }
@@ -348,7 +351,7 @@ class distance_query_incremental
         > nearest_predicate_access;
     typedef typename nearest_predicate_access::type nearest_predicate_type;
     typedef typename indexable_type<translator_type>::type indexable_type;
-    
+
     typedef index::detail::calculate_distance<nearest_predicate_type, indexable_type, strategy_type, value_tag> calculate_value_distance;
     typedef index::detail::calculate_distance<nearest_predicate_type, box_type, strategy_type, bounds_tag> calculate_node_distance;
     typedef typename calculate_value_distance::result_type value_distance_type;
@@ -391,15 +394,15 @@ public:
 //        , m_strategy()
         , m_pred(pred)
         , m_neighbors_count(0)
-        , m_neighbor_ptr(nullptr)        
+        , m_neighbor_ptr(nullptr)
     {}
 
     inline distance_query_incremental(MembersHolder const& members, Predicates const& pred)
-        : m_tr(::boost::addressof(members.translator()))
+        : m_tr(std::addressof(members.translator()))
         , m_strategy(index::detail::get_strategy(members.parameters()))
         , m_pred(pred)
         , m_neighbors_count(0)
-        , m_neighbor_ptr(nullptr)        
+        , m_neighbor_ptr(nullptr)
     {}
 
     const_reference dereference() const
@@ -527,7 +530,7 @@ private:
                     && ! ignore_branch_or_value(value_distance))
                 {
                     // add current value into the queue
-                    m_neighbors.push(std::make_pair(value_distance, boost::addressof(v)));
+                    m_neighbors.push(std::make_pair(value_distance, std::addressof(v)));
 
                     // remove unneeded value
                     if (m_neighbors_count + m_neighbors.size() > max_count())
@@ -560,7 +563,7 @@ private:
     strategy_type m_strategy;
 
     Predicates m_pred;
-    
+
     branches_type m_branches;
     neighbors_type m_neighbors;
     size_type m_neighbors_count;

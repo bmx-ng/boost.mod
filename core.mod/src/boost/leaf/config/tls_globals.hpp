@@ -1,27 +1,30 @@
 #ifndef BOOST_LEAF_CONFIG_TLS_GLOBALS_HPP_INCLUDED
 #define BOOST_LEAF_CONFIG_TLS_GLOBALS_HPP_INCLUDED
 
-// Copyright 2018-2022 Emil Dotchevski and Reverge Studios, Inc.
-
+// Copyright 2018-2025 Emil Dotchevski and Reverge Studios, Inc.
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-// LEAF requires thread local storage support for pointers and for uin32_t values.
-
-// This header implements "thread local" storage for pointers and for uint32_t
-// values using globals, which is suitable for single thread environments.
+// This header implements the TLS API specified in tls.hpp using globals, which
+// is suitable for single thread environments.
 
 #include <cstdint>
 
 namespace boost { namespace leaf {
 
-namespace leaf_detail
+namespace detail
 {
     using atomic_unsigned_int = unsigned int;
-}
 
-namespace tls
-{
+    template <class=void>
+    struct BOOST_LEAF_SYMBOL_VISIBLE id_factory
+    {
+        static atomic_unsigned_int counter;
+    };
+
+    template <class T>
+    atomic_unsigned_int id_factory<T>::counter = 1;
+
     template <class T>
     struct BOOST_LEAF_SYMBOL_VISIBLE ptr
     {
@@ -31,54 +34,59 @@ namespace tls
     template <class T>
     T * ptr<T>::p;
 
-    template <class T>
-    T * read_ptr() noexcept
+    template <class=void>
+    struct BOOST_LEAF_SYMBOL_VISIBLE current_error_id_storage
     {
-        return ptr<T>::p;
-    }
-
-    template <class T>
-    void write_ptr( T * p ) noexcept
-    {
-        ptr<T>::p = p;
-    }
-
-    ////////////////////////////////////////
-
-    template <class Tag>
-    struct BOOST_LEAF_SYMBOL_VISIBLE tagged_uint32
-    {
-        static std::uint32_t x;
+        static unsigned x;
     };
 
-    template <class Tag>
-    std::uint32_t tagged_uint32<Tag>::x;
+    template <class T>
+    unsigned current_error_id_storage<T>::x = 0;
+} // namespace detail
 
-    template <class Tag>
-    std::uint32_t read_uint32() noexcept
+} } // namespace boost::leaf
+
+////////////////////////////////////////
+
+namespace boost { namespace leaf {
+
+namespace tls
+{
+    BOOST_LEAF_ALWAYS_INLINE unsigned generate_next_error_id() noexcept
     {
-        return tagged_uint32<Tag>::x;
+        unsigned id = (detail::id_factory<>::counter += 4);
+        BOOST_LEAF_ASSERT((id&3) == 1);
+        return id;
     }
 
-    template <class Tag>
-    void write_uint32( std::uint32_t x ) noexcept
+    BOOST_LEAF_ALWAYS_INLINE void write_current_error_id( unsigned v ) noexcept
     {
-        tagged_uint32<Tag>::x = x;
+        detail::current_error_id_storage<>::x = v;
     }
 
-    template <class Tag>
-    void uint32_increment() noexcept
+    BOOST_LEAF_ALWAYS_INLINE unsigned read_current_error_id() noexcept
     {
-        ++tagged_uint32<Tag>::x;
+        return detail::current_error_id_storage<>::x;
     }
 
-    template <class Tag>
-    void uint32_decrement() noexcept
+    template <class T>
+    BOOST_LEAF_ALWAYS_INLINE void reserve_ptr()
     {
-        --tagged_uint32<Tag>::x;
     }
-}
 
-} }
+    template <class T>
+    BOOST_LEAF_ALWAYS_INLINE void write_ptr( T * p ) noexcept
+    {
+        detail::ptr<T>::p = p;
+    }
 
-#endif
+    template <class T>
+    BOOST_LEAF_ALWAYS_INLINE T * read_ptr() noexcept
+    {
+        return detail::ptr<T>::p;
+    }
+} // namespace tls
+
+} } // namespace boost::leaf
+
+#endif // #ifndef BOOST_LEAF_CONFIG_TLS_GLOBALS_HPP_INCLUDED

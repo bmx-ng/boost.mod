@@ -14,11 +14,11 @@
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <type_traits>
 
 #include <boost/concept_check.hpp>
 #include <boost/config.hpp>
-#include <boost/core/addressof.hpp>
 #include <boost/mpl/has_xxx.hpp>
 #include <boost/range/concepts.hpp>
 #include <boost/range/begin.hpp>
@@ -327,7 +327,7 @@ erase(Range && rng,
 
     std::size_t const count = static_cast<std::size_t>(diff);
     BOOST_GEOMETRY_ASSERT(count <= boost::size(rng));
-    
+
     if ( count > 0 )
     {
         typename boost::range_difference<Range>::type const
@@ -390,7 +390,7 @@ public:
     typedef Container container_type;
 
     explicit back_insert_iterator(Container & c)
-        : container(boost::addressof(c))
+        : container(std::addressof(c))
     {}
 
     back_insert_iterator & operator=(typename Container::value_type const& value)

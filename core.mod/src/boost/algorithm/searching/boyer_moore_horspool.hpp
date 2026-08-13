@@ -19,7 +19,7 @@
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
-#include <boost/utility/enable_if.hpp>
+#include <boost/core/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 #include <boost/algorithm/searching/detail/bm_traits.hpp>
@@ -107,7 +107,6 @@ http://www-igm.univ-mlv.fr/%7Elecroq/string/node18.html
         /// 
         /// \param corpus_first The start of the data to search (Random Access Iterator)
         /// \param corpus_last  One past the end of the data to search
-        /// \param k_corpus_length The length of the corpus to search
         ///
         template <typename corpusIter>
         std::pair<corpusIter, corpusIter>

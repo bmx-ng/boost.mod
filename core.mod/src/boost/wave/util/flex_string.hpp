@@ -995,7 +995,7 @@ public:
     }
 
     size_type max_size() const
-    { return get_allocator().max_size(); }
+    { return boost::allocator_max_size(get_allocator()); }
 
     size_type capacity() const
     { return Small() ? maxSmallString : GetStorage().capacity(); }
@@ -1407,7 +1407,7 @@ class flex_string : private Storage
 #else
     template <typename Exception>
     static inline void Enforce(bool condition, Exception*, const char* msg)
-    { BOOST_ASSERT(condition && msg); }
+    { BOOST_VERIFY(condition && msg); }
 #endif // defined(BOOST_WAVE_FLEXSTRING_THROW_ON_ENFORCE)
 
 #ifndef NDEBUG

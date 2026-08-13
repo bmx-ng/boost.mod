@@ -4,7 +4,7 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(BOOST_FUSION_FOLD_S_HPP_INCLUDED)
+#ifndef BOOST_FUSION_FOLD_S_HPP_INCLUDED
 #define BOOST_FUSION_FOLD_S_HPP_INCLUDED
 
 #include <boost/fusion/support/config.hpp>
@@ -14,6 +14,10 @@
 
 namespace boost { namespace fusion { namespace detail
 {
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
     template <typename Fun>
     struct segmented_fold_fun
     {
@@ -37,6 +41,9 @@ namespace boost { namespace fusion { namespace detail
             }
         };
     };
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
     // The default implementation of this lives in detail/fold.hpp
     template <typename Sequence, typename State, typename Fun, bool IsSequence, bool IsSegmented>

@@ -106,13 +106,13 @@ is_valid_close_code(std::uint16_t v)
     case close_code::internal_error:    // 1011
     case close_code::service_restart:   // 1012
     case close_code::try_again_later:   // 1013
+    case close_code::bad_gateway:       // 1014
         return true;
 
     // explicitly reserved
     case close_code::reserved1:         // 1004
     case close_code::no_status:         // 1005
     case close_code::abnormal:          // 1006
-    case close_code::reserved2:         // 1014
     case close_code::reserved3:         // 1015
         return false;
     }
@@ -209,11 +209,11 @@ read_close(
     if(n == 1)
     {
         // invalid payload size == 1
-        ec = error::bad_close_size;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_close_size);
         return;
     }
 
-    std::uint16_t code_be;
+    std::uint16_t code_be = {};
     cr.reason.resize(n - 2);
     std::array<net::mutable_buffer, 2> out_bufs{{
         net::mutable_buffer(&code_be, sizeof(code_be)),
@@ -225,7 +225,7 @@ read_close(
     if(! is_valid_close_code(cr.code))
     {
         // invalid close code
-        ec = error::bad_close_code;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_close_code);
         return;
     }
 
@@ -233,7 +233,7 @@ read_close(
         cr.reason.data(), cr.reason.size()))
     {
         // not valid utf-8
-        ec = error::bad_close_payload;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_close_payload);
         return;
     }
     ec = {};
